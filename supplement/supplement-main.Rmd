@@ -1,0 +1,2482 @@
+---
+title: "Beliefs about the development of mental life"
+subtitle: "Supplemental Materials"
+author:
+  - Kara Weisman^[Department of Psychology, University of California, Riverside; kgweisman@gmail.com]
+  - Lucy S. King^[Department of Psychiatry and Behavioral Sciences, Tulane University School of Medicine; Department of Psychology, The University of Texas at Austin]
+  - Kathryn L. Humphreys^[Department of Psychology, Vanderbilt University]
+date: "August 12, 2021"
+output:
+  # word_document:
+  #   reference_docx: word-styles-ref.docx
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: false
+bibliography: "references.bib"
+cls: article.cls
+figsintext: yes
+header-includes: 
+   - \usepackage{lineno}
+   - \linenumbers
+   - \usepackage{float}
+tables: yes
+---
+
+```{r setup, set.seed(94305), include = F}
+knitr::opts_chunk$set(cache = T)
+knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(fig.pos = 'H')
+knitr::opts_chunk$set(include = F)
+```
+
+```{r resave plots}
+# do you want to resave the plots?
+# resave_plots <- T # uncomment if yes
+resave_plots <- F # uncomment if no
+```
+
+```{r load packages}
+library(ggdendro)
+library(dendextend)
+library(psych)
+library(lme4)
+library(mgcv)
+library(kableExtra)
+library(langcog)
+library(parameters)
+library(cowplot)
+library(tidyverse)
+```
+
+```{r load custom funs}
+source("../code/custom_funs.R")
+```
+
+```{r load data}
+# suppress warnings and messages because dplyr is verbose
+suppressWarnings(suppressMessages(source("../code/data_prep_s1.R", 
+                                         chdir = TRUE)))
+suppressWarnings(suppressMessages(source("../code/data_prep_s2.R", 
+                                         chdir = TRUE)))
+suppressWarnings(suppressMessages(source("../code/data_prep_s3.R", 
+                                         chdir = TRUE)))
+```
+
+
+\newpage
+In a series of large-scale studies we assessed how US adults conceptualize the development of the human mind over the first five years of life. We identified four distinct suites of mental capacities that are perceived by US adults to develop over human infancy and early childhood, _bodily sensations_, _negative affect_, _social connection_, and _cognition and control_ (Study 1); charted how these different aspects of mental life are perceived to change over the first five years of a child's life (Studies 2-3); and explored the intuitive theories that underlie the observed differences in the perceived developmental trajectories of these four aspects of mental life (Study 3). 
+
+In these Supplemental Materials, we provide extended information about the methods and results presented in the main paper, present additional results, and provide an item-by-item comparison of the capacity items used here to items used in previous work on mind perception [@gray.etal2007; @weisman.etal2017a; @weisman.etal2017b; @malle2019].
+
+Note: This is a fully reproducible manuscript, written in RMarkdown using the "knitr" package for R [@xie2021]. The full, editable script for all analyses, figures, and tables (here and in the main text) is available in the .Rmd file that generated this document, which can be found in the following GitHub repository: https://github.com/kgweisman/baby_mental_life_ms.
+
+
+# Extended methods
+
+```{r}
+# NOTE: this is a bit of a circular process -- results files are generated in this .Rmd file, but they also need to be loaded in order to write the Extended Methods section. For this reason, results RDS files are included in the github repo.
+s1_results <- readRDS("../outputs/s1_results.rds")
+s2_results <- readRDS("../outputs/s2_results.rds")
+s3_results <- readRDS("../outputs/s3_results.rds")
+
+# ALSO NOTE: if you encounter problems knitting, try clearing the knit cache.
+```
+
+Methods, inclusion/exclusion criteria, and analyses marked as "preregistered" were preregistered on the Open Science Framework (OSF) website: (Study 1: https://osf.io/e6ajh/; Study 2: https://osf.io/j72dg; Study 3: https://osf.io/xh8ce/). All materials used in these studies are available in the following OSF repository: https://osf.io/xrznd/ (DOI: 10.17605/OSF.IO/XRZND). All studies were approved by the Stanford University Internal Review Board.
+
+## Study 1
+
+### Participants
+
+`r s1_results$demo %>% distinct() %>% nrow()` US adults participated via Amazon Mechanical Turk (MTurk) in July–August 2018. To be eligible for the study, participants were required to have gained approval for at least 95% of their previous work on MTurk, with at least 50 HITs completed; have MTurk accounts based in the US; indicate that they were between the ages of 18-45 years; and report that their English abilities were either "advanced" or "superior" (not "novice," "intermediate," or decline to provide information about English ability). Participants were paid $2.00 for approximately 10-15 minutes of their time.
+
+According to self-report, participants ranged in age from `r min(s1_results$demo$Age)`-`r max(s1_results$demo$Age)` years ($M$ = `r round_x(mean(s1_results$demo$Age, na.rm = T), 2)` years, $sd$ = `r round_x(sd(s1_results$demo$Age, na.rm = T), 2)` years) and included more men (`r round((s1_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Male") %>% pull(prop))*100, 0)`%) than women (`r round((s1_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Female") %>% pull(prop))*100, 0)`%; <1% of participants identified as some other gender or declined to disclose). Participants predominantly identified as White (`r round((s1_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity == "White") %>% pull(prop))*100, 0)`%; <`r round(100*(s1_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity != "White") %>% filter(prop == max(prop)) %>% pull(prop)) + 1, 0)`% identified as any other race/ethnicity, identified as more than one race/ethnicity, or declined to disclose). `r round(100*(s1_results$demo %>% count(Education) %>% arrange(desc(Education)) %>% mutate(cumprop = cumsum(n)/sum(n)) %>% filter(grepl("Bachelor", Education)) %>% pull(cumprop)))`% of participants had obtained at least a Bachelor's degree. `r round(100*(s1_results$demo %>% count(Parent) %>% mutate(prop = n/sum(n)) %>% filter(Parent == "Yes") %>% pull(prop)))`% of participants indicated that they were parents.
+
+An additional 77 participants completed the study but were excluded for failing one or more (out of three) embedded attention checks (e.g., failing to choose "34" in response to the question "Please select 34") or for indicating via a multiple choice question at the end of the survey that they had not paid attention, had not avoided distractions, or had not taken the study tasks seriously.
+
+### Materials and procedure
+
+After completing a screening questionnaire (in which participants provided information about their gender/sex, age, and English abilities) and providing informed consent, participants were provided with an overview of the study, as follows: "In this study, we will ask you about the mental capacities of children of different ages, from newborns to 5-year-olds. We will show you example photos of children at three of the following ages to remind you of what children look like at that age, but please think about children of that age in general when answering these questions. There are 60 brief questions for each of the three ages (for example, 'To what extent is a newborn capable of feeling happy?'), followed by a few demographic questions about yourself. We are interested in your opinions about these questions. Please do not look up extra information about these questions—we just want to know what you think." Participants were shown an array of pictures of children at several target ages between 0-5 years; see "Target ages and accompanying photographs," below.
+
+Participants then proceeded through three trials in which they assessed the mental lives of children at three target ages: birth, 9 months, and 5 years. On each trial, they were shown two representative photographs of children at the target age (with the photograph labeled "newborns," "9-month-olds," or "5-year-olds"), and asked to answer the following question for 60 capacities: "To what extent is a [newborn/9-month-old/5-year-old] capable of [this capacity]?" Participants responded on a sliding scale from 0 (labeled as "not at all capable") to 100 (labeled as "completely capable").
+
+On the final page of the survey, participants were asked to provide additional demographic information.
+
+#### Capacities
+
+The 60 capacities included in Study 1 were drawn from several areas of previous research. Our goals in selecting items were to: (1) balance the representation of the conceptual organization underlying mental capacity attributions in general, as identified in previous work [@gray.etal2007; @weisman.etal2017a; @weisman.etal2017b; @weisman.etal2018; @malle2019]; (2) add items relevant to early development, as identified by existing measures of temperament and behavior in early life [@putnam.etal2006; @rothbart1978]; and (3) assess the broadest range of mental capacities within financial and participant burden constraints, as identified by extensive discussions among the authors drawing on our own research and clinical experience with infants and young children. 
+
+This process yielded a list of 60 capacities. Roughly half of this list (29 of 60 items) were drawn from (or closely based on) the items included in Weisman et al.'s recent studies [@weisman.etal2017a]: "being aware of things", "feeling calm", "feeling embarrassed", "feeling guilty", "feeling happy", "feeling love", "feeling pain", "feeling pleasure", "feeling pride", "feeling sad", "feeling safe", "feeling scared", "feeling tired", "getting angry", "getting hungry", "getting hurt feelings", "having goals", "having self-control", "having thoughts", "having wants and desires", "hearing sounds", "making choices", "planning", "reasoning about things", "recognizing others' emotions", "recognizing somebody else", "remembering things", "seeing", and "telling right from wrong". By extension, the list included close variants on 14 of the 20 capacities evaluated in Gray et al.'s original study [@gray.etal2007]. 
+
+The other half (31 of 60 items) were novel items, not used in previous studies of mind perception, but common in clinical assessments of infant temperament and behavior: "being afraid of somebody", "being angry at somebody", "being comforted by physical touch", "calming themselves down", "controlling their emotions", "detecting danger", "feeling annoyed", "feeling bored", "feeling confused", "feeling distressed", "feeling excited", "feeling frustrated", "feeling helpless", "feeling hopeless", "feeling lonely", "feeling neglected", "feeling overwhelmed", "feeling physically uncomfortable", "feeling textures (for example, 'smooth', 'rough')", "feeling thirsty", "feeling too hot or too cold", "feeling worried", "finding something funny", "focusing on a goal", "getting pleasure from music", "imagining things", "learning from other people", "listening to somebody", "loving somebody", "thinking before they act", and "understanding what somebody else is thinking".
+
+See "Selection of capacities: Comparison to previous studies" for an item-by-item comparison of the capacities used here to those used in previous studies of mind perception [@gray.etal2007; @weisman.etal2017a; @weisman.etal2017b; @malle2019].
+
+Capacities were presented in a random order each time they were displayed (i.e., order varied across both target ages and participants).
+
+#### Target ages and accompanying photographs
+
+In planning this series of studies, we selected 13 target ages based on the developmental milestone ages identified by the CDC [@CDC2021] with the addition of the American Academy of Pediatrics' recommendations for pediatrician visits before 2 months [@AAP2018]: birth, 4 days, 1 month, 2 months, 4 months, 6 months, 9 months, 12 months, 18 months, 2 years, 3 years, 4 years, and 5 years. We limited Study 1 to just the youngest, median, and oldest target ages—presented to participants as "newborns," "9-month-olds" and "5-year-olds"—in order to maximize the number of capacities included in the study without over-burdening participants. 
+
+In selecting photos for each target age, we aimed to have photos of the same (or very similar-looking) children at all target ages so as to emphasize the question of the development of mental capacities over the course of an individual child's early life. We chose to illustrate each target age with two photos in order to emphasize that we were interested in children's mental capacities in general, rather than the experiences of a particular child in a particular moment. We also presented participants with instructions that underscored this point (see above). We included one boy and one girl at each target age in order to generalize across perceived sex/gender differences in children's early mental life. We used photographs of two (apparently) White, non-Hispanic children, for three reasons: (1) In order to avoid introducing spurious differences across target ages by confounding a target's age and race/ethnicity; (2) In order to match the anticipated race/ethnicity of the majority of participants on MTurk; and (3) Because of the limited set of high-resolution photographs of individual children of color at different points of development currently available to us. Conducting similar studies of adults' perceptions of the development of mental life with more ethnically and racially diverse participants, and examining the effects of sex, gender, race, and ethnicity on adults' perceptions of children's mental life, will be critical next steps in this line of research.
+
+Target ages were presented in chronological order, with participants first assessing all 60 capacities for newborns, then 9-month-old infants, and finally 5-year-old children.
+
+### Analysis plan
+
+To conduct the EFAs reported in Results, we proceeded as if each participant's ratings of the 60 mental capacities for each of the three target ages were a distinct source of data; in other words, as if we had 903 participants assessing one target age each, instead of 301 participants assessing three target ages each. (See [@weisman.etal2017a; @weisman.etal2021], for similar treatments of within-subjects data in the context of EFA.) We used Pearson correlations to obtain minimal residual solutions and applied an oblique transformation (oblimin) to the resulting factor structures, using the "psych" package for R [@revelle2021]. 
+
+In order to determine how many factors to retain, we examined the results of three factor retention protocols: (1) Parallel analysis, which compares the observed correlation structure to the correlation structure arising from random datasets of the same size; (2) Minimizing the Bayesian Information Criterion (BIC), which is one method of optimizing both goodness of fit and parsimony; and (3) A set of factor retention criteria that have been used in Weisman et al.'s previous work [@weisman.etal2017a], in which they retained factors with eigenvalues greater than 1.0, which individually accounted for greater than 5% of the shared variance before transformation or rotation, and which were the "dominant" factor (the factor with the strongest absolute factor loading) for at least one mental capacity after transformation (a factor had to meet all three of these criteria in order to be retained). Our interpretation of how best to characterize our dataset (i.e., how many factors we observe) was guided by the degree of consensus among these three protocols and the interpretability of the retained factors under each protocol.
+
+Parallel analysis suggested a `r s1_results$efa$factors`-factor solution (accounting for `r round(100*(s1_results$efa$Vaccounted["Cumulative Var",ncol(s1_results$efa$Vaccounted)]))`% of the total variance); minimizing BIC suggested a `r s1_results$efa_bic$factors`-factor solution (accounting for `r round(100*(s1_results$efa_bic$Vaccounted["Cumulative Var",ncol(s1_results$efa_bic$Vaccounted)]))`% of the total variance); and Weisman et al.'s (2017) factor retention criteria suggested a `r s1_results$efa_wdm$factors`-factor solution (accounting for `r round(100*(s1_results$efa_wdm$Vaccounted["Cumulative Var",ncol(s1_results$efa_wdm$Vaccounted)]))`% of the total variance). We present the `r s1_results$efa$factors`-factor solution in the main text because it was of intermediate size and because we judged the factors it revealed to be intelligible and of theoretical interest; we present all three solutions in these Supplemental Materials.
+
+## Study 2
+
+### Participants
+
+`r s2_results$demo %>% distinct() %>% nrow()` US adults participated via MTurk in August 2018. Eligibility requirements were identical to Study 1. Participants were paid $2.90 for approximately 15-20 minutes of their time. In response to the overrepresentation of men in Study 1, in Study 2 we recruited men and women through separate "Human Intelligence Tasks" (HITs).
+
+According to self-report, participants ranged in age from `r min(s2_results$demo$Age)`-`r max(s2_results$demo$Age)` years ($M$ = `r round_x(mean(s2_results$demo$Age, na.rm = T), 2)` years, $sd$ = `r round_x(sd(s2_results$demo$Age, na.rm = T), 2)` years) and (per our recruitment strategy) included roughly equal numbers of men (`r round((s2_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Male") %>% pull(prop))*100, 0)`%) and women (`r round((s2_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Female") %>% pull(prop))*100, 0)`%). Participants predominantly identified as White (`r round((s2_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity == "White") %>% pull(prop))*100, 0)`%; <`r round(100*(s2_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity != "White") %>% filter(prop == max(prop)) %>% pull(prop)) + 1, 0)`% identified as any other race/ethnicity, identified as more than one race/ethnicity, or declined to disclose). `r round(100*(s2_results$demo %>% count(Education) %>% arrange(desc(Education)) %>% mutate(cumprop = cumsum(n)/sum(n)) %>% filter(grepl("Bachelor", Education)) %>% pull(cumprop)))`% of participants had obtained at least a Bachelor's degree. `r round(100*(s2_results$demo %>% count(Parent) %>% mutate(prop = n/sum(n)) %>% filter(Parent == "Yes") %>% pull(prop)))`% of participants indicated that they were parents.
+
+An additional 90 participants completed the study but were excluded for failing one or more (out of four) attention checks or indicating that they had not paid attention (see Study 1).
+
+### Materials and procedure
+
+After completing a screening questionnaire (in which participants provided information about their gender/sex, age, and English abilities) and providing informed consent, participants were provided with an overview of the study that was nearly identical to that used in Study 1.
+
+Participants then proceeded through 13 trials in which they assessed the mental lives of children at 13 target ages: birth, 4 days, 1 month, 2 months, 4 months, 6 months, 9 months, 12 months, 18 months, 2 years, 3 years, 4 years, and 5 years. On each trial, they were shown two representative photographs of children at the target age, and asked to answer the following question for 20 capacities: "To what extent is a [newborn/4-day-old/etc.] capable of [this capacity]?" As in Study 1, participants responded on a sliding scale from 0 (labeled as "not at all capable") to 100 (labeled as "completely capable").
+
+On the final page of the survey, participants were asked to provide additional demographic information.
+
+#### Capacities
+
+In order to ask participants to assess a more fine-grained array of target ages without undue participant burden, we limited our list of capacities to 20 of the 60 capacities used in Study 1. To identify this list, we drew on the results of Study 1, selecting 5 items for each of the 4 factors identified there. For each factor, we aimed to select items that loaded strongly on that factor, did not cross-load strongly on other factors, were sufficiently distinguishable from each other in meaning (i.e., not overly redundant), and captured our qualitative understanding of the latent construct that each factor corresponded to. 
+
+To represent _bodily sensations_, we chose the following items: "getting hungry", "feeling pain", "feeling tired", "feeling physically uncomfortable", and "hearing sounds". In the oblimin-transformed `r s1_results$efa$factors`-factor solution from Study 1 all of these items had loadings $\geq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("getting_hungry", "feeling_pain", "feeling_tired", "feeling_physically_uncomfortable", "hearing_sounds")) %>% pull("MR2") %>% min() %>% round_x(., 2)` on this factor, and absolute loadings $\leq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("getting_hungry", "feeling_pain", "feeling_tired", "feeling_physically_uncomfortable", "hearing_sounds")) %>% gather(factor, loading, -capacity) %>% filter(factor != "MR2") %>% pull(loading) %>% max((abs(.))) %>% round_x(., 2)` on the other three factors.
+
+To represent _negative affect_, we chose the following items: "feeling distressed", "feeling lonely", "feeling frustrated", "feeling helpless", and "feeling overwhelmed". In Study 1 all of these items had loadings $\geq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("feeling_distressed", "feeling_lonely", "feeling_frustrated", "feeling_helpless", "feeling_overwhelmed")) %>% pull("MR4") %>% min() %>% round_x(., 2)` on this factor, and absolute loadings $\leq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("feeling_distressed", "feeling_lonely", "feeling_frustrated", "feeling_helpless", "feeling_overwhelmed")) %>% gather(factor, loading, -capacity) %>% filter(factor != "MR4") %>% pull(loading) %>% max((abs(.))) %>% round_x(., 2)` on the other three factors. As these numbers suggest, this was a difficult factor to represent, because there were no items that loaded very strongly on the factor (highest loading: `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("feeling_distressed", "feeling_lonely", "feeling_frustrated", "feeling_helpless", "feeling_overwhelmed")) %>% pull("MR4") %>% max() %>% round_x(., 2)`) and because the highest-loading items tended to cross-load on other factors as well. Nonetheless, we decided to try to represent this latent construct because of its theoretical interest and potential clinical importance.
+
+To represent _social connection_, we chose the following items: "feeling excited", "finding something funny", "loving somebody", "learning from other people", and "feeling happy". In the oblimin-transformed `r s1_results$efa$factors`-factor solution from Study 1 all of these items had loadings $\geq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("feeling_excited", "finding_something_funny", "loving_somebody", "learning_from_other_people", "feeling_happy")) %>% pull("MR3") %>% min() %>% round_x(., 2)` on this factor, and absolute loadings $\leq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("feeling_excited", "finding_something_funny", "loving_somebody", "learning_from_other_people", "feeling_happy")) %>% gather(factor, loading, -capacity) %>% filter(factor != "MR3") %>% pull(loading) %>% max(abs(.)) %>% round_x(., 2)` on the other three factors.
+
+Finally, to represent _cognition and control_, we chose the following items: "planning", "having self-control", "reasoning about things", "controlling their emotions", and "telling right from wrong". In the oblimin-transformed `r s1_results$efa$factors`-factor solution from Study 1 all of these items had loadings $\geq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("planning", "having_self_control", "reasoning_about_things", "controlling_their_emotions", "telling_right_from_wrong")) %>% pull("MR1") %>% min() %>% round_x(., 2)` on this factor, and absolute loadings $\leq$ `r s1_results$efa$loadings[] %>% data.frame() %>% rownames_to_column("capacity") %>% filter(capacity %in% c("planning", "having_self_control", "reasoning_about_things", "controlling_their_emotions", "telling_right_from_wrong")) %>% gather(factor, loading, -capacity) %>% filter(factor != "MR1") %>% pull(loading) %>% max(abs(.)) %>% round_x(., 2)` on the other three factors.
+
+Capacities were presented in a random order each time they were displayed (i.e., order varied across both target ages and participants).
+
+#### Target ages and accompanying photographs
+
+The target ages for this study (birth, 4 days, 1 month, 2 months, 4 months, 6 months, 9 months, 12 months, 18 months, 2 years, 3 years, 4 years, and 5 years) were based on the developmental milestone ages described in Study 1. The pairs of photos used to illustrate each target age were identical to those used in Study 1; see Study 1, Methods, for more information. 
+
+As in Study 1, target ages were presented in chronological order, with participants first assessing all 20 capacities for newborns, then 4-day-old infants, then 1-month-old infants, and so forth.
+
+### Analysis plan
+
+#### Preregistered confirmatory analysis of conceptual structure
+
+Based on the results of Study 1, we predicted that the correlational structure of participants' responses would reveal four underlying constructs corresponding to the four factors we identified in Study 1: _bodily sensations_, _negative affect_, _social connection_, and _cognition and control_. To test this hypothesis, we performed an EFA, following the methods established in Study 1. We predicted that, using the same guidelines we applied for conducting and interpreting EFA in Study 1, we would find support for a `r s1_results$efa$factors`-factor solution, with factors that were similar to the factors revealed in that study (e.g., similar groups of capacities that loaded strongly on any given factor).
+
+In line with our predictions, both parallel analysis and Weisman et al.'s factor retention criteria suggested a `r s2_results$efa$factors`-factor solution, which accounted for `r round(100*(s2_results$efa$Vaccounted["Cumulative Var",ncol(s2_results$efa$Vaccounted)]))`% of the total variance in participants' capacity attributions. In this solution, all items loaded most strongly on the factors that they were selected to represent. Minimizing BIC suggested an `r s2_results$efa_bic$factors`-factor solution (accounting for `r round(100*(s2_results$efa_bic$Vaccounted["Cumulative Var",ncol(s2_results$efa_bic$Vaccounted)]))`% of the total variance). 
+
+#### Preregistered confirmatory analysis of perceived developmental trajectories
+
+We preregistered two hypotheses about the perceived developmental trajectories we anticipated to observe in Study 2. (1) We predicted that, on average, participants' perception of children's mental capacities would increase as a function of the target child's age, with participants generally attributing more and greater abilities to older children; and (2) We predicted that, in the domains of _cognition and control_ and _social connection_, participants would perceive relatively more dramatic developmental changes extending later into childhood (i.e., lower intercepts and steeper slopes), whereas in the domains of _bodily sensations_ and _negative affect_ participants would perceive relatively smaller changes across development (i.e., higher intercepts and shallower slopes). 
+
+To test these hypotheses, we conducted a multilevel beta regression via a generalized additive model, regressing item-level responses onto the domain (i.e., which of the four "factors" this capacity was selected to represented) and a spline-based smooth of the target age of the child fitted separately for each domain, including the maximal random effects structure that would allow the model to converge. Using the "mgcv" package for R [@wood2017], we specified this model as follows: _gamm(response ~ s(target age in years, by = domain) + domain, random = list(subject ID = ~1, capacity = ~1)_. Attempting to model random slopes for domain or for target age resulted in model convergence problems. Responses were rescaled to range from 0.005 to 0.995 in order to satisfy the constraints of the beta distribution. Domain was dummy-coded with _cognition and control_ as the baseline. 
+
+These tests deviated slightly from the preregistered analysis. We originally planned to use "factor scores" (which take into account participants' responses to all 20 items and the relations of those items to all 4 factors) rather than the summary scores described above as our dependent variable for these tests. We planned to derive these factor scores by projecting Study 2 data into the conceptual space defined by the factor solution for Study 1; however, this projection was impossible to implement, because Study 2 included only a subset of the variables used in Study 1. Furthermore, upon reflection, we decided that using any kind of factor scores (even factor scores derived only from Study 2 data) would be inappropriate for testing our hypotheses, which hinge on assessing the _absolute_ degree to which participants attributed different aspects of mental life to children of different ages; factor scores, which function much like z-scores, are instead designed to capture individual differences in responses (i.e., the degree to which a given participant attributed relatively greater or lesser capacities compared to the average of all participants). 
+
+In addition, we note that we originally planned to use a multilevel linear regression to analyze these scores. However, we now consider it misguided to model participants' responses using gaussian distribution, because—both in principle and in our empirical dataset—capacity ratings behaved asymptotically, plateauing near the ceiling of the scale (100, labeled "completely capable") at some point in development. The approach described here—using the beta distribution—is a far more accurate representation of these responses. Using generalized additive models via the "mgcv" package for R [@wood2017] allowed us to fine-tune the shape of these perceived developmental trajectories via spline-based smoothing (analogous to fitting polynomial terms in the context of linear regression, but without specifying in advance the order of the polynomials included in the model). 
+
+## Study 3
+
+### Participants
+
+`r s3_results$demo %>% distinct() %>% nrow()` US adults participated via MTurk in April 2019. Eligibility requirements were identical to Studies 1-2. Participants were paid $2.90 for approximately 15-20 minutes of their time. As in Study 2, we recruited men and women separately.
+
+According to self-report, participants ranged in age from `r min(s3_results$demo$Age)`-`r max(s3_results$demo$Age)` years ($M$ = `r round_x(mean(s3_results$demo$Age, na.rm = T), 2)` years, $sd$ = `r round_x(sd(s3_results$demo$Age, na.rm = T), 2)` years) and (per our recruitment strategy) included roughly equal numbers of men (`r round((s3_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Male") %>% pull(prop))*100, 0)`%) and women (`r round((s3_results$demo %>% count(GenderSex) %>% mutate(prop = n/sum(n)) %>% filter(GenderSex == "Female") %>% pull(prop))*100, 0)`%). Participants predominantly identified as White (`r round((s3_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity == "White") %>% pull(prop))*100, 0)`%; <`r round(100*(s3_results$demo %>% count(RaceEthnicity) %>% mutate(prop = n/sum(n)) %>% filter(RaceEthnicity != "White") %>% filter(prop == max(prop)) %>% pull(prop)) + 1, 0)`% identified as any other race/ethnicity, identified as more than one race/ethnicity, or declined to disclose). `r round(100*(s3_results$demo %>% count(Education) %>% arrange(desc(Education)) %>% mutate(cumprop = cumsum(n)/sum(n)) %>% filter(grepl("Bachelor", Education)) %>% pull(cumprop)))`% of participants had obtained at least a Bachelor's degree. `r round(100*(s3_results$demo %>% count(Parent) %>% mutate(prop = n/sum(n)) %>% filter(Parent == "Yes") %>% pull(prop)))`% of participants indicated that they were parents.
+
+An additional 79 participants completed the study but were excluded for failing two or more (out of eight) embedded attention checks or for failing to provide a reasonable response in well-formed English sentences to an open-ended comprehension check included at the end of the survey.
+
+### Materials and procedure
+
+After completing a screening questionnaire (in which participants provided information about their gender/sex, age, and English abilities) and providing informed consent, participants were provided with an overview of the study, as follows: "In this study, we will ask you about the mental capacities of children of different ages. We will show you example photos of children at each of the following ages to remind you of what children look like at that age, but please think about children of that age in general when answering these questions. We will ask you about 8 different mental capacities: feeling happy, getting hungry, controlling emotions, feeling distressed, feeling pain, reasoning about things, learning from other people, and feeling helpless. For each mental capacity, we will ask you to assess the extent to which newborns (at birth) have this mental capacity, then 4-day-olds, 1-month-olds, 2-month-olds, 4-month-olds, and so on, ending with 5-year-olds. We'll also ask for your opinion about the different factors that might influence the development of these capacities, such as the child being ‘preprogrammed' to have certain abilities, or the child learning from the people or objects around him or her. At the end of the survey, we will ask you a few demographic questions about yourself. We are interested in your opinions about these questions. Please do not look up extra information about these questions—we just want to know what you think." 
+
+Participants then proceeded through eight trials, in which they assessed each of the eight capacities in turn; the order of capacities was randomized across participants. On each trial, participant assessed children at all 13 target ages used in Study 2 in a fixed order from youngest to oldest. Each age was presented along with a representative pair of photographs (also used in Studies 1 and 2), and participants were asked to answer the following question: "To what extent is a [newborn/4-day-old/1-month-old/etc.] capable of [this capacity]?" Participants responded on a sliding scale from 0 (labeled as "not at all capable") to 100 (labeled as "completely capable").
+
+On each trial, at the bottom of the page participants completed a set of questions about the possible mechanisms that drive development for the capacity in question. First, they were asked, "In your opinion, how important is each of the following factors in the development of children's capacity for [capacity]?" They provided independent ratings on a Likert-type scale from 0 (labeled as "not at all important") to 6 (labeled as "extremely important"), for the following 10 developmental mechanisms: "the child is biologically 'preprogrammed' to have this ability"; "the child has experiences in the womb that given them this ability"; "the child's body grows and matures (for example, muscles get stronger, child gets taller)"; "the child's brain changes (for example, brain grows bigger, more or fewer connections between neurons)"; "the child's senses improve (for example, vision gets sharper, hearing improves)"; "the child observes the objects and the physical world around him or her"; "the child observes the people around him or her"; "the child interacts with the people around him or her"; "people explicitly teach the child how to do this"; "the child actively experiments with how to do this". These items were presented in a fixed order (roughly, from what we perceived to be the most innate or biological mechanisms of development, to what we perceived to be the most learned or social). They were then provided an opportunity to write in "any factors that play a role in the development of children's capacity for [capacity]". Finally, they were asked to choose among these 10 possible mechanisms (or to write in another mechanism) to answer the question, "If you had to choose just one, which of the following factors is the most important in the development of capacities for [capacity]?"
+On the final page of the survey, participants were asked to provide additional demographic information.
+
+#### Capacities
+
+Because Study 3 included additional questions probing participants' theories of developmental mechanisms, we reduced the set of mental capacities from 20 in Study 2 to eight in the current study to maintain an appropriate level of participant burden. To select these eight capacities, we drew on the results of Study 2, selecting two items for each of the four factors identified by EFA. For each domain, we selected items that loaded strongly on the relevant factor, did not cross-load strongly on other factors, were sufficiently distinguishable from each other in meaning (i.e., not overly redundant), and captured our qualitative understanding of the domain that each factor corresponded to. We chose "controlling their emotions" and "reasoning about things" to represent the domain of _cognition and control_; "getting hungry" and "feeling pain" to represent the domain of _bodily sensations_; "learning from other people" and "feeling happy" to represent the domain of _social connection_; and "feeling distressed" and "feeling helpless" to represent the domain of _negative affect_. Capacities were presented in a random order for each participant.
+
+#### Target ages and accompanying photographs
+
+The 13 target ages for this study were identical to Study 2, with the exception that we added the parenthetical phrase "(at birth)" when referring to newborns. Each target age was presented with the same pair of photographs used in Study 2. Target ages were presented in chronological order on each trial. 
+
+### Analysis plan
+
+#### Preregistered confirmatory analysis of perceived developmental trajectories
+
+We preregistered two hypotheses about the perceived developmental trajectories we anticipated to observe in Study 3; these were identical to our hypotheses for Study 2 (which were upheld in that study): (1) We predicted that, on average, participants' perception of children's mental capacities would increase as a function of the target child's age, with participants generally attributing more and greater abilities to older children; and (2) We predicted that, in the domains of _cognition and control_ and _social connection_, participants would perceive relatively more dramatic developmental changes extending later into childhood (i.e., lower intercepts and steeper slopes), whereas in the domains of _bodily sensations_ and _negative affect_ participants would perceive relatively smaller changes across development (i.e., higher intercepts and shallower slopes). 
+
+Following Study 2, to test these hypotheses we conducted a multilevel beta regression via a generalized additive model, regressing item-level responses onto the domain and a spline-based smooth of the target age of the child fitted separately for each domain, including the maximal random effects structure that would allow the model to converge. Using the "mgcv" package for R [@wood2017], we specified this model as follows: _gamm(responses ~ s(target age in years, by = domain) + domain, random = list(subject ID = ~1, capacity = ~1)_. Again, attempting to model random slopes for domain or for target age resulted in model convergence problems. Again, responses were rescaled to range from 0.005 to 0.995, and domain was dummy-coded with _cognition and control_ as the baseline.
+
+(We note that, in contrast to Study 2, in Study 3 we did preregister this analysis, although we preregistered a linear regression rather than a beta regression via generalized additive model; see extended notes on our choice of this analysis approach under Study 2.)
+
+#### Preregistered exploratory analysis of perceived developmental trajectories
+
+Beyond the two hypotheses described in the previous section, we also anticipated that perceptions of developmental trajectories in different domains would vary in their curvilinearity—e.g., development in one domain might be perceived to be gradual and linear, while development in another domain might be perceived to occur in stages, at an exponential rate, or to peak at a specific age. To explore these possibilities, we preregistered a regression analysis adding polynomial effects of target age; however, in our reconceptualization of the appropriate way to analyze our data given the distribution of the response variable (see Study 2), this exploratory analysis was superseded by the generalized additive model. 
+
+#### Preregistered exploratory analysis of developmental mechanisms
+
+Finally, we assessed which developmental mechanisms were considered to be the most or least important in the development of each of the individual mental capacities included in this study (*bodily sensations*, *negative affect*, *social connection*, and *cognition and control*). We specified in our preregistration that this assessment would be conducted primarily through visualization, but to complement this visualization we also conducted a multilevel linear regression regressing responses to this question onto type of developmental mechanism (extrinsic vs. intrinsic), domain, and an interaction between them, including the maximal random effects structure that allowed the model to converge. Using the "lme4" package for R [@bates.etal2015], we specified this model as follows: _lmer(response ~ mechanism type * domain + (1 + mechanism type + domain | participant) + (1 | developmental mechanism) + (1 | capacity)_. We also conducted separate, analogous regression analyses for each domain separately. In all of these analyses, mechanism type and domain were effect-coded for comparisons to the grand mean collapsing across mechanism types and domains. (Note that these analyses omitted the mechanism "the child's brain changes [...]", because it was the only mechanism that was difficult to classify as either intrinsic or extrinsic via EFA and clustering analyses; see main text.)
+
+
+# Extended results
+
+## Study 1
+
+As described in the main text, we began with an expansive exploration of US adults' attributions of mental life to infants and young children of different ages. We included a wide range of 60 capacities in this initial exploration, from basic physiological sensations, to capacities for perception, cognition, and emotion, to abilities for self-regulation and social interaction. We asked participants to assess these capacities at three different ages (at birth, 9 months, and 5 years), with the goal of characterizing the conceptual structure underlying participants' reasoning about the development of mental life. Our primary analysis for this preregistered study was an exploratory factor analysis (EFA) of participants' capacity ratings. This analysis allowed us to examine which capacities tend to "hang together" in participants' assessments of the mental lives of infants and young children. Following previous work on mind perception, we argue that the suites of capacities revealed by EFA offer a meaningful approximation of the latent conceptual structure underlying participants' reasoning about the developing human mind.
+
+In the main text, we presented the four-factor EFA solution suggested by parallel analysis. Here, we present extended results for this EFA and the alternative EFA solutions suggested by minimizing BIC and by Weisman et al.'s factor retention criteria [@weisman.etal2017a], as well as a visualization of perceptions of development in these mental capacities.
+
+### Exploratory factor analyses (EFAs)
+
+In order to determine how many factors to retain, we examined the results of three factor retention protocols: 
+
+(1) Parallel analysis (presented in the main text), which compares the observed correlation structure to the correlation structure arising from random datasets of the same size; 
+(2) Minimizing the Bayesian Information Criterion (BIC), which is one method of optimizing both goodness of fit and parsimony; and 
+(3) A set of factor retention criteria that have been used in Weisman et al.'s previous work [@weisman.etal2017a], in which they retained factors with eigenvalues greater than 1.0, which individually accounted for greater than 5% of the shared variance before transformation or rotation, and which were the "dominant" factor (the factor with the strongest absolute factor loading) for at least one mental capacity after transformation.  (In this protocol, a factor had to meet all three of these criteria in order to be retained). 
+
+Our interpretation of how best to characterize our dataset (i.e., how many factors we observe) was guided by the degree of consensus among these three protocols and the interpretability of the retained factors under each protocol. Here we present these three factor retention protocols separately.
+
+All factor analyses were conducted using ordinary least squares to find the minimum residual solution via the "fa" function in the "psych" package for R [@revelle2021].
+
+#### Parallel analysis
+
+```{r s1 parallel analysis}
+set.seed(94305)
+s1_parallel <- fa.parallel(d1_all, plot = F)
+```
+
+```{r s1 efa parallel analysis}
+s1_efa_par <- fa(d1_all, 
+                 nfactors = s1_parallel$nfact, 
+                 rotate = "oblimin")
+# s1_efa_par %>% fa.sort()
+```
+
+As reported in the main text, parallel analysis suggested retaining `r s1_parallel$nfact` factors. We call these factors _cognition and control_, _social connection_, _bodily sensations_, and _negative affect_. Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs1efaparload); see also Figure 1 (main text). The amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs1efaparvacc).
+
+It is worth noting that a handful of items loaded relatively strongly on two factors (loadings $\geq$ 0.40), suggesting that these factors are not entirely distinct. The item "feeling distressed", for instance, loaded roughly equally strongly on both _bodily sensations_ and _negative affect_—perhaps reflecting the idea that "distress" might be experienced both as a physical sensation (like pain) and an affective state (like frustration). Likewise, "seeing" loaded equally strongly on both _bodily sensations_ and _social connection_—perhaps reflecting an understanding of vision as both a sensory ability and a critical part of many social interactions (eye contact). The relatively large degree of overlap between _cognition and control_ and _social connection_, in particular, might indicate that participants believed these two constructs to be more strongly connected than other aspects of life; in fact, these two factors were the most strongly correlated of all pairs of factors ($\phi$ = `r round_x(s1_results$efa$Phi["MR1", "MR3"], 2)`). (The next strongest correlation was between _bodily sensations_ and _social connection_: $\phi$  = `r round_x(s1_results$efa$Phi["MR2", "MR3"], 2)`. All other inter-factor correlations: $\phi \le$ `r round_x((s1_results$efa$Phi[upper.tri(s1_results$efa$Phi) == T] %>% sort(decreasing = T))[3], 2)`.)
+
+```{r tabs1efaparload, include = T, warning = F, message = F}
+tabs1efaparload <- model_parameters(s1_efa_par, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F))) %>%
+  rename(`Cog. Ctrl.` = MR1,
+         `Soc. Conn.` = MR3,
+         `Bod. Sens.` = MR2,
+         `Neg. Afft.` = MR4)
+
+tabs1efaparload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by parallel analysis: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, width = "1cm", bold = tabs1efaparload[,s1_parallel$nfact+4]) %>%
+  column_spec(3, width = "1cm", bold = tabs1efaparload[,s1_parallel$nfact+5]) %>%
+  column_spec(4, width = "1cm", bold = tabs1efaparload[,s1_parallel$nfact+6]) %>%
+  column_spec(5, width = "1cm", bold = tabs1efaparload[,s1_parallel$nfact+7]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs1efaparvacc, include = T, warning = F, message = F}
+s1_efa_par$Vaccounted %>% 
+  data.frame() %>% 
+  rename(`Cognition and control` = MR1,
+         `Social connection` = MR3,
+         `Bodily sensations` = MR2,
+         `Negative affect` = MR4) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by parallel analysis: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r fig01 code, fig.width = 4.5, fig.asp = 1.2}
+heatmap_fun(s1_efa_par, 
+            factor_names = c("Cognition and control",
+                             "Bodily sensations",
+                             "Social connection",
+                             "Negative affect"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/fig01.pdf")) {
+  ggsave("../outputs/fig01.jpg")
+  ggsave("../outputs/fig01.svg")
+  ggsave("../outputs/fig01.pdf")
+}
+```
+
+```{r fig01, fig.cap="Study 1, factor solution suggested by parallel analysis. (Identical to Figure 1 in main text.)"}
+# knitr::include_graphics("../outputs/fig01.pdf")
+```
+
+#### Minimizing BIC
+
+```{r s1 minimizing bic}
+s1_minbic <- VSS(d1_all, plot = F)
+
+s1_minbic <- s1_minbic$vss.stats %>%
+  rownames_to_column("nfact") %>%
+  mutate(nfact = as.numeric(nfact)) %>%
+  filter(BIC == min(BIC)) %>%
+  data.frame()
+```
+
+```{r s1 efa minimizing bic}
+s1_efa_bic <- fa(d1_all, 
+                 nfactors = s1_minbic$nfact, 
+                 rotate = "oblimin") # does not converge even with max.iter >> 100000; max.iter does affect printout
+# s1_efa_bic %>% fa.sort()
+```
+
+Minimizing BIC suggested retaining `r s1_minbic$nfact` factors. (Note, however, that this solution does not converge.) Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs1efabicload). The amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs1efabicvacc).
+
+```{r tabs1efabicload, include = T, warning = F, message = F}
+tabs1efabicload <- model_parameters(s1_efa_bic, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F)))
+
+tabs1efabicload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by minimizing BIC: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, bold = tabs1efabicload[,s1_minbic$nfact+4]) %>%
+  column_spec(3, bold = tabs1efabicload[,s1_minbic$nfact+5]) %>%
+  column_spec(4, bold = tabs1efabicload[,s1_minbic$nfact+6]) %>%
+  column_spec(5, bold = tabs1efabicload[,s1_minbic$nfact+7]) %>%
+  column_spec(6, bold = tabs1efabicload[,s1_minbic$nfact+8]) %>%
+  column_spec(7, bold = tabs1efabicload[,s1_minbic$nfact+9]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs1efabicvacc, include = T, warning = F, message = F}
+s1_efa_bic$Vaccounted %>% 
+  data.frame() %>% 
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by minimizing BIC: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+We consider the first of these factors ("`r names(data.frame(s1_efa_bic$loadings[]))[1]`") to resonate with the construct we have called _cognition and control_, the second ("`r names(data.frame(s1_efa_bic$loadings[]))[2]`") to resonate with the construct we have called _bodily sensations_, the third ("`r names(data.frame(s1_efa_bic$loadings[]))[3]`") to resonate with the construct we have called _social connection_, and the fourth ("`r names(data.frame(s1_efa_bic$loadings[]))[4]`") to resonate with the construct we have called _negative affect_. The fifth factor ("`r names(data.frame(s1_efa_bic$loadings[]))[5]`") appears to pick out capacities particularly relevant to social interaction (e.g., social learning, person recognition, humor, listening), and the sixth factor ("`r names(data.frame(s1_efa_bic$loadings[]))[6]`") appears to pick out negative emotions (e.g., anger, annoyance, boredom, social fear); however, there were no capacities that loaded strongly on either of these capacities. 
+
+```{r figS01 code, fig.width = 4.5, fig.asp = 1.2}
+heatmap_fun(s1_efa_bic)
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS01.pdf")) {
+  ggsave("../outputs/figS01.svg")
+  ggsave("../outputs/figS01.pdf")
+}
+```
+
+```{r figS01, fig.cap="Study 1, factor solution suggested by minimizing BIC.", include = F}
+knitr::include_graphics("../outputs/figS01.pdf")
+```
+
+#### Weisman et al.'s (2017) factor retention criteria
+
+```{r s1 weisman et al criteria}
+s1_weismanetal <- reten_fun(d1_all, rot_type = "oblimin")
+s1_weismanetal
+```
+
+```{r s1 efa weisman et al criteria}
+s1_efa_wdm <- fa(d1_all, 
+                 nfactors = s1_weismanetal, 
+                 rotate = "oblimin") 
+# s1_efa_wdm %>% fa.sort()
+```
+
+Weisman et al.'s factor retention criteria suggested retaining `r s1_weismanetal` factors. Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs1efawdmload). The amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs1efawdmvacc).
+
+```{r tabs1efawdmload, include = T, warning = F, message = F}
+tabs1efawdmload <- model_parameters(s1_efa_wdm, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F)))
+
+tabs1efawdmload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by Weisman et al.'s (2017) factor retention criteria: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, bold = tabs1efawdmload[,s1_weismanetal+4]) %>%
+  column_spec(3, bold = tabs1efawdmload[,s1_weismanetal+5]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs1efawdmvacc, include = T, warning = F, message = F}
+s1_efa_wdm$Vaccounted %>% 
+  data.frame() %>% 
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 1, factor solution suggested by Weisman et al.'s (2017) factor retention criteria: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+We consider the first of these factors ("`r names(data.frame(s1_efa_wdm$loadings[]))[1]`") to resonate most strongly with the construct we have called _cognition and control_, and the second ("`r names(data.frame(s1_efa_wdm$loadings[]))[2]`") to resonate most strongly with the construct we have called _bodily sensations_. These factors are also quite similar to the constructs of "agency" and "experience" in Gray et al.'s original studies of mind perception [@gray.etal2007].
+
+```{r figS02 code, fig.width = 4.5, fig.asp = 1.2}
+heatmap_fun(s1_efa_wdm)
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS02.pdf")) {
+  ggsave("../outputs/figS02.svg")
+  ggsave("../outputs/figS02.pdf")
+}
+```
+
+```{r figS02, fig.cap="Study 1, factor solution suggested by minimizing BIC."}
+knitr::include_graphics("../outputs/figS02.pdf")
+```
+
+### Capacity ratings: Developmental trajectories
+
+Study 1 also offered a first glimpse into US adults' perceptions of the development of mental life. Supplementary Figure \@ref(fig:figS03) provides a visualization of mean "scores" for each domain of mental life. To calculate these scores, we sorted each of the 60 mental capacities included in this study into on of the four domains (_bodily sensations_, _negative affect_, _social connection_ or _cognition and control_) according to the factor on which it loaded the most strongly and positively (see Supplementary Table \@ref(tab:tabs1efaparload)); for each participant, we then took the average of their responses to capacities in each domain at each target age. As we go on to confirm in Studies 2-3, this visualization suggests that participants perceived capacities for _bodily sensations_ to be substantial at birth and to develop relatively little over the first five years of life; in contrast, they perceived capacities for _negative affect_, _social connection_, and in particular _cognition and control_ to be much more limited at birth and to development dramatically over the first five years of life. 
+
+```{r s1 scales}
+d1_scales <- s1_efa_par$loadings[] %>%
+  data.frame() %>%
+  rownames_to_column("capacity") %>%
+  gather(factor, loading, -capacity) %>%
+  group_by(capacity) %>%
+  top_n(1, abs(loading)) %>%
+  ungroup() %>%
+  mutate(factor = recode_factor(factor,
+                                "MR2" = "Bodily sensations",
+                                "MR4" = "Negative affect",
+                                "MR3" = "Social connection",
+                                "MR1" = "Cognition and control")) %>%
+  arrange(factor, desc(loading)) %>%
+  mutate(order = 1:nrow(.))
+```
+
+```{r s1 cap ratings dataset}
+d1_cap_ratings <- d1_all %>%
+  rownames_to_column("ResponseId_target") %>%
+  separate(ResponseId_target, c("ResponseId", "target")) %>%
+  mutate(target_year = recode(target,
+                              target00mo = 0, # newborns
+                              target0Xmo = 3/365, # 3 days
+                              target01mo = 1/12, # 1 month
+                              target02mo = 2/12, 
+                              target04mo = 4/12, 
+                              target06mo = 6/12, 
+                              target09mo = 9/12,
+                              target12mo = 12/12,
+                              target18mo = 18/12,
+                              target24mo = 24/12,
+                              target36mo = 36/12,
+                              target48mo = 48/12,
+                              target60mo = 60/12)) %>%
+    gather(capacity, response, -ResponseId, -starts_with("target")) %>%
+  left_join(d1_scales %>% distinct(factor, capacity))
+```
+
+```{r s1 cap ratings summary stats}
+d1_cap_ratings_sum <- d1_cap_ratings %>%
+  group_by(factor, target_year) %>%
+  summarise(median = median(response, na.rm = T),
+            mean = mean(response, na.rm = T),
+            sd = sd(response, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(target_year, factor)
+
+d1_cap_ratings_sum %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+```
+
+```{r s1 gam dataset}
+d1_gam <- d1_cap_ratings %>%
+  # implement correction for beta distribution
+  mutate(response = case_when(response/100 < 0.005 ~ 0.005,
+                              response/100 > 0.995 ~ 0.995,
+                              TRUE ~ response/100))
+
+contrasts(d1_gam$factor) <- cbind(bod_cog = c(1, 0, 0, 0),
+                                  neg_cog = c(0, 1, 0, 0),
+                                  soc_cog = c(0, 0, 1, 0))
+```
+
+```{r figS03 code, fig.width = 4, fig.asp = 0.5}
+d1_gam %>%
+  group_by(ResponseId, target_year, factor) %>%
+  # # ALTERNATIVE: take just top 5 items per factor (like Study 2)
+  # left_join(d1_scales %>% distinct(factor, capacity, loading)) %>%
+  # top_n(5, loading) %>%
+  summarise(score = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  ggplot(aes(x = target_year, y = score, color = factor)) +
+  facet_grid(~ factor) +
+  geom_path(aes(group = ResponseId),
+            # color = "#160072",
+            alpha = 0.2, size = 0.02) +
+  geom_path(data = . %>%
+                    group_by(factor, target_year) %>%
+                    summarise(mean = mean(score, na.rm = T)) %>%
+                    ungroup,
+            aes(y = mean),
+            color = "black", lty = 2) +
+            # color = "#160072",
+  geom_pointrange(data = . %>%
+                    group_by(factor, target_year) %>%
+                    multi_boot_standard(col = "score") %>%
+                    ungroup,
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black",
+                  # color = "#160072",
+                  fatten = 1) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Mean response\n0 = not at all capable, 100 = completely capable") +
+  guides(color = guide_none())
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS03.pdf")) {
+  ggsave("../outputs/figS03.svg")
+  ggsave("../outputs/figS03.pdf")
+}
+```
+
+```{r figS03, fig.cap="Perceived developmental trajectories for four domains of mental life (Study 1). Lighter lines represent individual participants' scores, black points correspond to mean scores across the sample, and error bars are bootstrapped 95% confidence intervals.", include = T}
+knitr::include_graphics("../outputs/figS03.pdf")
+```
+
+```{r s1 export results}
+# save numerical results
+s1_results <- list(demo = d1_demo,
+                   efa = s1_efa_par,
+                   efa_bic = s1_efa_bic,
+                   efa_wdm = s1_efa_wdm,
+                   cap_rat_ss = d1_cap_ratings_sum)
+
+saveRDS(s1_results, "../outputs/s1_results.rds")
+```
+
+
+## Study 2
+
+As described in the main text, in Study 2 we replicated the conceptual structure identified by Study 1 and then used it to chart how different aspects of mental life are perceived to change over development. The design of Study 2 was nearly identical to Study 1, except that instead of assessing 60 capacities for 3 target ages, each participant assessed 20 capacities for 13 target ages.
+
+In the main text, we briefly described the four-factor EFA solution suggested by parallel analysis, and presented the results of a generalized additive model (GAM) predicting participants' responses as a function of target age, domain, and interactions between them. Here, we present the full results for the EFA mentioned in the main text, an alternative EFA solutions suggested by minimizing BIC, and the full results of the GAM.
+
+### Exploratory factor analyses (EFAs)
+
+As in Study 1, we examined the results of three factor retention protocols (parallel analysis, presented in the main text; minimizing BIC; and Weisman et al.'s factor retention criteria [@weisman.etal2017a]), and our interpretation of how best to characterize our dataset was guided by the degree of consensus among these three protocols and the interpretability of the retained factors under each protocol. Here we present these three factor retention protocols separately.
+
+#### Parallel analysis
+
+```{r s2 parallel analysis}
+set.seed(94305)
+s2_parallel <- fa.parallel(d2_all, plot = F)
+```
+
+```{r s2 efa parallel analysis}
+s2_efa_par <- fa(d2_all, 
+                 nfactors = s2_parallel$nfact, 
+                 rotate = "oblimin")
+# s2_efa_par %>% fa.sort()
+```
+
+As reported in the main text, parallel analysis suggested retaining `r s2_parallel$nfact` factors, and these factors were very similar to those found in Study 1 (_bodily sensations_, _negative affect_, _social connection_, and _cognition and control_); each item loaded most strongly on the factor it was selected to represent. Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs2efaparload); see also Figure 1 (main text). The amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs2efaparvacc).
+
+```{r tabs2efaparload, include = T, warning = F, message = F}
+tabs2efaparload <- model_parameters(s2_efa_par, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F))) %>%
+  rename(`Neg. Afft.` = MR1,
+         `Bod. Sens.` = MR3,
+         `Cog. Ctrl.` = MR2,
+         `Soc. Conn.` = MR4)
+
+tabs2efaparload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 2, factor solution suggested by parallel analysis: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, width = "1cm", bold = tabs2efaparload[,s2_parallel$nfact+4]) %>%
+  column_spec(3, width = "1cm", bold = tabs2efaparload[,s2_parallel$nfact+5]) %>%
+  column_spec(4, width = "1cm", bold = tabs2efaparload[,s2_parallel$nfact+6]) %>%
+  column_spec(5, width = "1cm", bold = tabs2efaparload[,s2_parallel$nfact+7]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs2efaparvacc, include = T, warning = F, message = F}
+s2_efa_par$Vaccounted %>% 
+  data.frame() %>% 
+  rename(`Negative affect` = MR1,
+         `Bodily sensations` = MR3,
+         `Cognition and control` = MR2,
+         `Social connection` = MR4) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 2, factor solution suggested by parallel analysis: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r figS04 code, fig.width = 4.5, fig.asp = 0.5}
+heatmap_fun(s2_efa_par, 
+            factor_names = c("Negative affect",
+                             "Cognition and control",
+                             "Bodily sensations",
+                             "Social connection"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS04.pdf")) {
+  ggsave("../outputs/figS04.svg")
+  ggsave("../outputs/figS04.pdf")
+}
+```
+
+```{r figS04, fig.cap="Study 2, factor solution suggested by parallel analysis. (Identical to Figure 1 in main text.)"}
+# knitr::include_graphics("../outputs/figS04.pdf")
+```
+
+#### Minimizing BIC
+
+```{r s2 minimizing bic}
+s2_minbic <- VSS(d2_all, plot = F)
+
+s2_minbic <- s2_minbic$vss.stats %>%
+  rownames_to_column("nfact") %>%
+  mutate(nfact = as.numeric(nfact)) %>%
+  filter(BIC == min(BIC)) %>%
+  data.frame()
+```
+
+```{r s2 efa minimizing bic}
+s2_efa_bic <- fa(d2_all, 
+                 nfactors = s2_minbic$nfact, 
+                 rotate = "oblimin") # does not converge even with max.iter >> 100000; max.iter does affect printout
+# s2_efa_bic %>% fa.sort()
+```
+
+Minimizing BIC suggested retaining `r s2_minbic$nfact` factors. (Note, however, that this solution does not converge.) Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs2efabicload). The amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs2efabicvacc).
+
+```{r tabs2efabicload, include = T, warning = F, message = F}
+tabs2efabicload <- model_parameters(s2_efa_bic, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F)))
+
+tabs2efabicload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 2, factor solution suggested by minimizing BIC: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, bold = tabs2efabicload[,s2_minbic$nfact+4]) %>%
+  column_spec(3, bold = tabs2efabicload[,s2_minbic$nfact+5]) %>%
+  column_spec(4, bold = tabs2efabicload[,s2_minbic$nfact+6]) %>%
+  column_spec(5, bold = tabs2efabicload[,s2_minbic$nfact+7]) %>%
+  column_spec(6, bold = tabs2efabicload[,s2_minbic$nfact+8]) %>%
+  column_spec(7, bold = tabs2efabicload[,s2_minbic$nfact+9]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs2efabicvacc, include = T, warning = F, message = F}
+s2_efa_bic$Vaccounted %>% 
+  data.frame() %>% 
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 2, factor solution suggested by minimizing BIC: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+We consider the first of these factors ("`r names(data.frame(s2_efa_bic$loadings[]))[1]`") to resonate with the construct we have called _cognition and control_, the second ("`r names(data.frame(s2_efa_bic$loadings[]))[2]`") to resonate with the construct we have called _bodily sensations_, the third ("`r names(data.frame(s2_efa_bic$loadings[]))[3]`") to resonate with the construct we have called _social connection_, and the fourth and fifth ("`r names(data.frame(s2_efa_bic$loadings[]))[4]`" and "`r names(data.frame(s2_efa_bic$loadings[]))[5]`") to resonate with the construct we have called _negative affect_. The sixth factor ("`r names(data.frame(s2_efa_bic$loadings[]))[6]`") appears to pick out capacities particularly relevant to social interaction (e.g., social learning, love). We have no strong intuitions about how to interpret the seventh and eighth factors ("`r names(data.frame(s2_efa_bic$loadings[]))[7]`" and "`r names(data.frame(s2_efa_bic$loadings[]))[8]`"). 
+
+```{r figS05 code, fig.width = 4.5, fig.asp = 1.2}
+heatmap_fun(s2_efa_bic)
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS05.pdf")) {
+  ggsave("../outputs/figS05.svg")
+  ggsave("../outputs/figS05.pdf")
+}
+```
+
+```{r figS05, fig.cap="Study 2, factor solution suggested by minimizing BIC.", include = F}
+knitr::include_graphics("../outputs/figS05.pdf")
+```
+
+#### Weisman et al.'s (2017) factor retention criteria
+
+```{r s2 weisman et al criteria}
+s2_weismanetal <- reten_fun(d2_all, rot_type = "oblimin")
+s2_weismanetal
+```
+
+```{r s2 efa weisman et al criteria}
+s2_efa_wdm <- fa(d2_all, 
+                 nfactors = s2_weismanetal, 
+                 rotate = "oblimin") 
+# s2_efa_wdm %>% fa.sort()
+```
+
+Weisman et al.'s factor retention criteria suggested retaining `r s2_weismanetal` factors—i.e., the same `r s2_weismanetal`-factor solution suggested by parallel analysis. (See Supplementary Tables \@ref(tab:tabs2efaparload) and \@ref(tab:tabs2efaparvacc).)
+
+### Capacity ratings: Developmental trajectories
+
+Our primary goal in Study 2 was to chart perceptions of the development of mental life over the first five years. As described in the main text, we preregistered two hypotheses about the perceived developmental trajectories we anticipated to observe in Study 2:
+
+(1) We predicted that, on average, participants' perception of children's mental capacities would increase as a function of the target child's age, with participants generally attributing more and greater abilities to older children.
+(2) We predicted that, in the domains of _cognition and control_ and _social connection_, participants would perceive relatively more dramatic developmental changes extending later into childhood (i.e., lower intercepts and steeper slopes), whereas in the domains of _bodily sensations_ and _negative affect_ participants would perceive relatively smaller changes across development (i.e., higher intercepts and shallower slopes). 
+
+To test these hypotheses, we conducted a multilevel beta regression via a generalized additive model, regressing item-level responses onto the domain (i.e., which of the four "factors" this capacity was selected to represented) and a spline-based smooth of the target age of the child fitted separately for each domain, including the maximal random effects structure that would allow the model to converge. Using the "mgcv" package for R [@wood2017], we specified this model as follows: _gamm(response ~ s(target age in years, by = domain) + domain, random = list(subject ID = ~1, capacity = ~1)_. Attempting to model random slopes for domain or for target age resulted in model convergence problems. Responses were rescaled to range from 0.005 to 0.995 in order to satisfy the constraints of the beta distribution. Domain was dummy-coded with _cognition and control_ as the baseline. The full results of this model are presented in Supplementary Tables \@ref(tab:tabs2gamfixed) and \@ref(tab:tabs2gamsmooth); see Figure 2, Panel A (main text) for a visualization of these perceived trajectories.
+
+In brief, we view these results as confirming our hypotheses that US adults would rate older children as more capable across the board, but that perceptions of the development of children's capacities would differ across domains. (See main text for extended interpretation.)
+
+```{r s2 scales}
+d2_scales <- s2_efa_par$loadings[] %>%
+  data.frame() %>%
+  rownames_to_column("capacity") %>%
+  gather(factor, loading, -capacity) %>%
+  group_by(factor) %>%
+  top_n(5, loading) %>%
+  ungroup() %>%
+  mutate(factor = recode_factor(factor,
+                                "MR3" = "Bodily sensations",
+                                "MR1" = "Negative affect",
+                                "MR4" = "Social connection",
+                                "MR2" = "Cognition and control")) %>%
+  arrange(factor, desc(loading)) %>%
+  mutate(order = 1:nrow(.))
+```
+
+```{r s2 cap ratings dataset}
+d2_cap_ratings <- d2_all %>%
+  rownames_to_column("ResponseId_target") %>%
+  separate(ResponseId_target, c("ResponseId", "target")) %>%
+  mutate(target_year = recode(target,
+                              target00mo = 0, # newborns
+                              target0Xmo = 3/365, # 3 days
+                              target01mo = 1/12, # 1 month
+                              target02mo = 2/12, 
+                              target04mo = 4/12, 
+                              target06mo = 6/12, 
+                              target09mo = 9/12,
+                              target12mo = 12/12,
+                              target18mo = 18/12,
+                              target24mo = 24/12,
+                              target36mo = 36/12,
+                              target48mo = 48/12,
+                              target60mo = 60/12)) %>%
+    gather(capacity, response, -ResponseId, -starts_with("target")) %>%
+  left_join(d2_scales %>% distinct(factor, capacity))
+```
+
+```{r s2 cap ratings summary stats}
+d2_cap_ratings_sum <- d2_cap_ratings %>%
+  group_by(factor, target_year) %>%
+  summarise(median = median(response, na.rm = T),
+            mean = mean(response, na.rm = T),
+            sd = sd(response, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(target_year, factor)
+
+d2_cap_ratings_sum %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+```
+
+```{r s2 gam dataset}
+d2_gam <- d2_cap_ratings %>%
+  # implement correction for beta distribution
+  mutate(response = case_when(response/100 < 0.005 ~ 0.005,
+                              response/100 > 0.995 ~ 0.995,
+                              TRUE ~ response/100))
+
+contrasts(d2_gam$factor) <- cbind(bod_cog = c(1, 0, 0, 0),
+                                  neg_cog = c(0, 1, 0, 0),
+                                  soc_cog = c(0, 0, 1, 0))
+```
+
+```{r s2 gam}
+if (!file.exists("../outputs/s2_gam.RDS")) {
+  # takes ~20 minutes to run
+  s2_gam <- gamm(response ~ s(target_year, by = factor) + factor, 
+                 random = list(ResponseId = ~1,
+                               capacity = ~1),
+                 data = d2_gam,
+                 family = betar,
+                 method = "REML",
+                 niterPQL = 40)
+  
+  saveRDS(s2_gam, "../outputs/s2_gam.RDS")
+  
+} else {
+  s2_gam <- readRDS("../outputs/s2_gam.RDS")
+}
+
+summary(s2_gam$gam)
+# model_parameters(s2_gam$gam)
+```
+
+```{r tabs2gam}
+tabs2gam <- model_parameters(s2_gam$gam)
+```
+
+```{r tabs2gamfixed, include = T}
+tabs2gam %>% 
+  filter(Component == "conditional") %>%
+  select(-c(df, df_error, Component)) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Cognition and control (intercept)",
+    grepl("bod", Parameter) ~ "Bodily sensations vs. Cognition and control",
+    grepl("neg", Parameter) ~ "Negative affect vs. Cognition and control",
+    grepl("soc", Parameter) ~ "Social connection vs. Cognition and control"),
+    p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T, 
+        caption = "Study 2, GAM results: Parametric coefficients (fixed effects).",
+        digits = 2, align = c("lrrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r tabs2gamsmooth, include = T}
+tabs2gam %>% 
+  filter(Component == "smooth_terms") %>%
+  select(-c(Coefficient, SE, starts_with("CI"), df_error, Component)) %>%
+  mutate(Parameter = case_when(
+    grepl("Bod", Parameter) ~ "Target year: Bodily sensations",
+    grepl("Neg", Parameter) ~ "Target year: Negative affect",
+    grepl("Soc", Parameter) ~ "Target year: Social connection",
+    grepl("Cog", Parameter) ~ "Target year: Cognition and control"),
+    p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  rename(`Estimated df` = df) %>%
+  kable("latex", booktabs = T, longtable = T, 
+        caption = "Study 2, GAM results: Approximate significance of smooth terms.",
+        digits = 2, align = c("lrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r s2 gam predictions}
+d2_gam_r1_pred <- d2_gam %>%
+  mutate(pred = predict.gam(s2_gam$gam, type = "response", 
+                            newdata = d2_gam)) %>%
+  group_by(ResponseId, factor, target_year) %>%
+  summarise(score = mean(response, na.rm = T),
+            pred_score = mean(pred, na.rm = T)) %>%
+  ungroup()
+```
+
+```{r fig02a, fig.cap="Perceived developmental trajectories for four domains of mental life (Study 2). Lighter lines represent individual participants' scores, black points correspond to mean scores across the sample, error bars are bootstrapped 95% confidence intervals, and thick red lines are predictions from our generalized additive model (beta regression).", fig.width = 4, fig.asp = 0.5}
+d2_gam_r1_rsq <- round_x(summary(s2_gam$gam)$r.sq, 2)
+
+fig02a <- d2_gam_r1_pred %>%
+  ggplot(aes(x = target_year, y = score, color = factor)) +
+  facet_grid(~ factor) +
+  geom_path(aes(group = ResponseId),
+            # color = "#160072",
+            alpha = 0.2, size = 0.02) +
+  geom_smooth(aes(y = pred_score), 
+              color = "#f94802",
+              fill = NA, size = 1, lty = 1) +
+  geom_pointrange(data = . %>%
+                    group_by(factor, target_year) %>%
+                    multi_boot_standard(col = "score") %>%
+                    ungroup,
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black",
+                  # color = "#160072",
+                  fatten = 1) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Mean response", # \n0 = not at all capable, 100 = completely capable",
+       caption = bquote(paste("Adjusted R"^"2"*" = ", .(d2_gam_r1_rsq)))) +
+  guides(color = guide_none())
+
+# make jpg version (darker)
+fig02a_jpg <- d2_gam_r1_pred %>%
+  ggplot(aes(x = target_year, y = score, color = factor)) +
+  facet_grid(~ factor) +
+  geom_path(aes(group = ResponseId),
+            # color = "#160072",
+            alpha = 1, size = 0.02) +
+  geom_smooth(aes(y = pred_score), 
+              color = "#f94802",
+              fill = NA, size = 1, lty = 1) +
+  geom_pointrange(data = . %>%
+                    group_by(factor, target_year) %>%
+                    multi_boot_standard(col = "score") %>%
+                    ungroup,
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black",
+                  # color = "#160072",
+                  fatten = 1) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Mean response", # \n0 = not at all capable, 100 = completely capable",
+       caption = bquote(paste("Adjusted R"^"2"*" = ", .(d2_gam_r1_rsq)))) +
+  guides(color = guide_none())
+
+# # save plot
+# if (resave_plots == T | !file.exists("../outputs/fig02a.pdf")) {
+#   ggsave("../outputs/fig02a.svg")
+#   ggsave("../outputs/fig02a.pdf")
+# }
+```
+
+```{r s2 export results}
+# save numerical results
+s2_results <- list(demo = d2_demo,
+                   efa = s2_efa_par,
+                   efa_bic = s2_efa_bic,
+                   efa_wdm = s2_efa_wdm,
+                   cap_rat_ss = d2_cap_ratings_sum,
+                   gam = s2_gam)
+
+saveRDS(s2_results, "../outputs/s2_results.rds")
+```
+
+## Study 3
+
+As described in the main text, Study 3 was designed with two goals in mind: First, we aimed to provide a more direct assessment of the differences in perceived developmental trajectories surfaced by Study 2. Second, we aimed to probe the intuitive theories that might underlie the differentiation of the four factors surfaced by Studies 1-2 and the perceived developmental trajectories surfaced by Study 2 (and the current study).
+
+In the main text, we presented the results of a generalized additive model (GAM) predicting participants' capacity ratings as a function of target age, domain, and interactions between them; briefly described the dimensionality reduction analyses we used to group developmental mechanisms into two types ("intrinsic" and "extrinsic"); presented the results of a multilevel linear regression model predicting participants' ratings of developmental mechanisms as a function of mechanism type, domain, and an interaction between them; briefly mentioned additional models of each domain separately; and provided visualizations of participants' selections of the "most important" mechanism for each capacity, by domain. Here, we present the full results of all of these models, as well as the results of a multilevel logistic regression model of the selection of "most important" mechanism.
+
+### Capacity ratings: Developmental trajectories
+
+We preregistered two hypotheses about the perceived developmental trajectories we anticipated to observe in Study 3 (identical to our hypotheses for Study 2):
+
+(1) We predicted that, on average, participants' perception of children's mental capacities would increase as a function of the target child's age, with participants generally attributing more and greater abilities to older children.
+(2) We predicted that, in the domains of _cognition and control_ and _social connection_, participants would perceive relatively more dramatic developmental changes extending later into childhood (i.e., lower intercepts and steeper slopes), whereas in the domains of _bodily sensations_ and _negative affect_ participants would perceive relatively smaller changes across development (i.e., higher intercepts and shallower slopes). 
+
+Following Study 2, to test these hypotheses we conducted a multilevel beta regression via a generalized additive model, regressing item-level responses onto the domain and a spline-based smooth of the target age of the child fitted separately for each domain, including the maximal random effects structure that would allow the model to converge. Using the "mgcv" package for R [@wood2017], we specified this model as follows: _gamm(responses ~ s(target age in years, by = domain) + domain, random = list(subject ID = ~1, capacity = ~1)_. Again, attempting to model random slopes for domain or for target age resulted in model convergence problems. Again, responses were rescaled to range from 0.005 to 0.995, and domain was dummy-coded with _cognition and control_ as the baseline. The full results of this model are presented in Supplementary Tables \@ref(tab:tabs3gamfixed) and \@ref(tab:tabs3gamsmooth); see Figure 2, Panel B (main text) for a visualization of these perceived trajectories.
+
+In brief, we view these results as confirming our hypotheses that US adults would rate older children as more capable across the board, but that perceptions of the development of children's capacities would differ across domains. (See main text for extended interpretation.)
+
+```{r s3 cap ratings dataset}
+d3_cap_ratings <- d3 %>%
+  mutate(target_year = target_num/12) %>%
+  mutate(factor = recode_factor(domain,
+                                "BOD" = "Bodily sensations",
+                                "NEG" = "Negative affect",
+                                "POS" = "Social connection",
+                                "COG" = "Cognition and control")) %>%
+  select(-domain)
+```
+
+```{r s3 cap ratings summary stats}
+d3_cap_ratings_sum <- d3_cap_ratings %>%
+  group_by(factor, target_year) %>%
+  summarise(median = median(response, na.rm = T),
+            mean = mean(response, na.rm = T),
+            sd = sd(response, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(target_year, factor)
+
+d3_cap_ratings_sum %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+```
+
+```{r s3 gam dataset}
+d3_gam <- d3_cap_ratings %>%
+  # implement correction for beta distribution
+  mutate(response = case_when(response/100 < 0.005 ~ 0.005,
+                              response/100 > 0.995 ~ 0.995,
+                              TRUE ~ response/100))
+
+contrasts(d3_gam$factor) <- cbind(bod_cog = c(1, 0, 0, 0),
+                                  neg_cog = c(0, 1, 0, 0),
+                                  soc_cog = c(0, 0, 1, 0))
+```
+
+```{r s3 gam}
+if (!file.exists("../outputs/s3_gam.RDS")) {
+  # takes ~5 minutes to run
+  s3_gam <- gamm(response ~ s(target_year, by = factor) + factor, 
+                 random = list(ResponseId = ~1,
+                               capacity = ~1),
+                 data = d3_gam,
+                 family = betar,
+                 method = "REML",
+                 niterPQL = 40)
+  
+  saveRDS(s3_gam, "../outputs/s3_gam.RDS")
+  
+} else {
+  s3_gam <- readRDS("../outputs/s3_gam.RDS")
+}
+
+summary(s3_gam$gam)
+```
+
+```{r tabs3gam}
+tabs3gam <- model_parameters(s3_gam$gam)
+```
+
+```{r tabs3gamfixed, include = T}
+tabs3gam %>% 
+  filter(Component == "conditional") %>%
+  select(-c(df, df_error, Component)) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Cognition and control (intercept)",
+    grepl("bod", Parameter) ~ "Bodily sensations vs. Cognition and control",
+    grepl("neg", Parameter) ~ "Negative affect vs. Cognition and control",
+    grepl("soc", Parameter) ~ "Social connection vs. Cognition and control"),
+    p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T, 
+        caption = "Study 3, GAM results: Parametric coefficients (fixed effects).",
+        digits = 2, align = c("lrrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r tabs3gamsmooth, include = T}
+tabs3gam %>% 
+  filter(Component == "smooth_terms") %>%
+  select(-c(Coefficient, SE, starts_with("CI"), df_error, Component)) %>%
+  mutate(Parameter = case_when(
+    grepl("Bod", Parameter) ~ "Target year: Bodily sensations",
+    grepl("Neg", Parameter) ~ "Target year: Negative affect",
+    grepl("Soc", Parameter) ~ "Target year: Social connection",
+    grepl("Cog", Parameter) ~ "Target year: Cognition and control"),
+    p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  rename(`Estimated df` = df) %>%
+  kable("latex", booktabs = T, longtable = T, 
+        caption = "Study 3, GAM results: Approximate significance of smooth terms.",
+        digits = 2, align = c("lrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r s3 gam predictions}
+d3_gam_r1_pred <- d3_gam %>%
+  mutate(pred = predict.gam(s3_gam$gam, type = "response", 
+                            newdata = d3_gam)) %>%
+  group_by(ResponseId, factor, target_year) %>%
+  summarise(score = mean(response, na.rm = T),
+            pred_score = mean(pred, na.rm = T)) %>%
+  ungroup()
+```
+
+```{r fig02b, fig.cap="Perceived developmental trajectories for four domains of mental life (Study 3). Scores were calculated by averaging a participant's responses to the two capacity items for each domain of mental life. Lighter lines represent individual participants' scores, black points correspond to mean scores across the sample, error bars are bootstrapped 95% confidence intervals, and thick red lines are predictions from our generalized additive model (beta regression).", fig.width = 4, fig.asp = 0.5}
+d3_gam_r1_rsq <- round_x(summary(s3_gam$gam)$r.sq, 2)
+
+fig02b <- d3_gam_r1_pred %>%
+  ggplot(aes(x = target_year, y = score, color = factor)) +
+  facet_grid(~ factor) +
+  geom_path(aes(group = ResponseId),
+            # color = "#160072",
+            alpha = 0.2, size = 0.02) +
+  geom_smooth(aes(y = pred_score), 
+              color = "#f94802",
+              fill = NA, size = 1, lty = 1) +
+  geom_pointrange(data = . %>%
+                    group_by(factor, target_year) %>%
+                    multi_boot_standard(col = "score") %>%
+                    ungroup,
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black",
+                  # color = "#160072",
+                  fatten = 1) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Mean response", # \n0 = not at all capable, 100 = completely capable",
+       caption = bquote(paste("Adjusted R"^"2"*" = ", .(d3_gam_r1_rsq)))) +
+  guides(color = guide_none())
+
+# make jpg version (darker)
+fig02b_jpg <- d3_gam_r1_pred %>%
+  ggplot(aes(x = target_year, y = score, color = factor)) +
+  facet_grid(~ factor) +
+  geom_path(aes(group = ResponseId),
+            # color = "#160072",
+            alpha = 1, size = 0.02) +
+  geom_smooth(aes(y = pred_score), 
+              color = "#f94802",
+              fill = NA, size = 1, lty = 1) +
+  geom_pointrange(data = . %>%
+                    group_by(factor, target_year) %>%
+                    multi_boot_standard(col = "score") %>%
+                    ungroup,
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black",
+                  # color = "#160072",
+                  fatten = 1) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 1, 0.25),
+                     labels = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Mean response", # \n0 = not at all capable, 100 = completely capable",
+       caption = bquote(paste("Adjusted R"^"2"*" = ", .(d3_gam_r1_rsq)))) +
+  guides(color = guide_none())
+
+# # save plot
+# if (resave_plots == T | !file.exists("../outputs/fig02b.pdf")) {
+#   ggsave("../outputs/fig02b.svg")
+#   ggsave("../outputs/fig02b.pdf")
+# }
+```
+
+```{r fig02, fig.cap="Perceived developmental trajectories for four domains of mental life (Studies 2-3). Lighter lines represent individual participants' responses, black points correspond to mean responses across the sample, error bars are bootstrapped 95% confidence intervals, and thick red lines are predictions from our generalized additive models (beta regressions). In Study 2 (Panel A), participants assessed 5 capacities within each domain, and assessed all capacities for a given target age before moving on to the next target age. In Study 3 (Panel B), participants assessed 2 capacities within each domain, and assessed a single capacity for all target ages before moving on to the next capacity.", fig.width = 4, fig.asp = 0.7}
+plot_grid(fig02a, fig02b,
+          ncol = 1, labels = "AUTO")
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/fig02.pdf")) {
+  ggsave("../outputs/fig02.svg")
+  ggsave("../outputs/fig02.pdf")
+}
+```
+
+```{r fig02_jpg, fig.cap="Perceived developmental trajectories for four domains of mental life (Studies 2-3). Lighter lines represent individual participants' responses, black points correspond to mean responses across the sample, error bars are bootstrapped 95% confidence intervals, and thick red lines are predictions from our generalized additive models (beta regressions). In Study 2 (Panel A), participants assessed 5 capacities within each domain, and assessed all capacities for a given target age before moving on to the next target age. In Study 3 (Panel B), participants assessed 2 capacities within each domain, and assessed a single capacity for all target ages before moving on to the next capacity.", fig.width = 4, fig.asp = 0.7}
+plot_grid(fig02a_jpg, fig02b_jpg,
+          ncol = 1, labels = "AUTO")
+
+# save plot   
+if (resave_plots == T | !file.exists("../outputs/fig02.jpg")) {
+  ggsave("../outputs/fig02.jpg")
+}
+```
+
+### Developmental mechanisms: Ratings
+
+As a first step in assessing the intuitive theories underlying these perceptions of the development of human mental life, we asked participants to assess the importance of a variety of possible developmental mechanisms for each of the capacities included in this study. We assessed a wide range of potential developmental mechanisms for children's capacities. We applied a variety of dimensionality reduction approaches in order to sort these developmental mechanisms into meaningful categories, and then modeled participants' ratings of the importance of these mechanism as a function of domain (_bodily sensations_, _negative affect_, _social connection_, and _cognition and control_). 
+
+```{r s3 mech ratings datasets a}
+d3_mech_ratings_wide <- d3_dev_factor_rating %>%
+  select(-domain) %>%
+  spread(dev_factor, response) %>%
+  unite(RepsonseId_capacity, c(ResponseId, capacity)) %>%
+  column_to_rownames("RepsonseId_capacity")
+```
+
+#### Dimensionality reduction
+
+Here we present two dimensionality reduction approaches: EFA via parallel analysis (analogous to the EFAs of mental capacity attributions from Studies 1-2) and hierarchical clustering.
+
+##### EFA (via parallel analysis)
+
+```{r s3 parallel analysis}
+set.seed(94305) # this does not appear to work well -- may need to try a few times
+s3_parallel <- fa.parallel(d3_mech_ratings_wide, plot = F)
+```
+
+```{r s3 efa parallel analysis}
+s3_efa_par <- fa(d3_mech_ratings_wide, 
+                 nfactors = s3_parallel$nfact, 
+                 rotate = "oblimin")
+# s3_efa_par %>% fa.sort()
+```
+
+Parallel analysis suggested retaining `r s3_parallel$nfact` factors, which we labeled _extrinsic (passive)_, _extrinsic (active)_, _intrinsic (after birth)_, and _intrinsic (before birth)_. Factor loadings, item complexity, and uniqueness are shown in Supplementary Table \@ref(tab:tabs3efaload); the amount of total and shared variance accounted for by these factors is shown in Supplementary Table \@ref(tab:tabs3efavacc).
+
+```{r tabs3efaload, include = T, warning = F, message = F}
+tabs3efaload <- model_parameters(s3_efa_par, sort = T) %>% 
+  data.frame() %>% 
+  rename(Capacity = Variable) %>%
+  mutate(Capacity = gsub("_", " ", Capacity)) %>%
+  mutate_at(vars(starts_with("MR")),
+            funs("bold" = ifelse(. >= 0.6, T, F))) %>%
+  rename(`Extrinsic (passive)` = MR1,
+         `Extrinsic (active)` = MR3,
+         `Intrinsic (after birth)` = MR4,
+         `Intrinsic (before birth)` = MR2)
+
+tabs3efaload %>%
+  select(-ends_with("_bold")) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 3, factor solution suggested by parallel analysis: Factor loadings, complexity, and uniqueness.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  column_spec(2, width = "1.8cm", bold = tabs3efaload[,s3_parallel$nfact+4]) %>%
+  column_spec(3, width = "1.8cm", bold = tabs3efaload[,s3_parallel$nfact+5]) %>%
+  column_spec(4, width = "1.8cm", bold = tabs3efaload[,s3_parallel$nfact+6]) %>%
+  column_spec(5, width = "1.8cm", bold = tabs3efaload[,s3_parallel$nfact+7]) %>%
+  footnote(general = "Factor loadings with absolute values >0.60 are in bold.")
+```
+
+```{r tabs3efavacc, include = T, warning = F, message = F}
+s3_efa_par$Vaccounted %>% 
+  data.frame() %>% 
+  rename(`Extrinsic (passive)` = MR1,
+         `Extrinsic (active)` = MR3,
+         `Intrinsic (after birth)` = MR4,
+         `Intrinsic (before birth)` = MR2) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T, digits = 2,
+        caption = "Study 3, factor solution suggested by parallel analysis: Variance accounted for.") %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r figS06 code, fig.width = 4.5, fig.asp = 0.5}
+heatmap_fun(s3_efa_par, 
+            factor_names = c("Extrinsic (passive)",
+                             "Intrinsic (before birth)",
+                             "Extrinsic (active)",
+                             "Intrinsic (after birth)"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS06.pdf")) {
+  ggsave("../outputs/figS06.svg")
+  ggsave("../outputs/figS06.pdf")
+}
+```
+
+```{r figS06, fig.cap="Study 3, factor solution suggested by parallel analysis."}
+# knitr::include_graphics("../outputs/figS06.pdf")
+```
+
+##### Hierarchical clustering
+
+In addition to the EFA just described, we also conducted a hierarchical cluster analysis, using Euclidean distance and Ward's agglomeration method. The resulting dendrogram is presented in Supplementary Figure \@ref(fig:figS07). We view this as providing further support for the idea that these mechanisms can be sorted into two high-level categories: "extrinsic" mechanisms (left) and "intrinsic" mechanisms (right).
+
+```{r figS07 code, fig.width = 3, fig.asp = 0.6}
+d3_mech_ratings_wide %>% 
+  rename_with(~recode(., 
+                      "preprogrammed" = "biologically 'preprogrammed'",
+                      "womb_experiences" = "experiences in the womb",
+                      "body_grows" = "body grows and matures",
+                      "brain_changes" = "brain changes",
+                      "senses_improve" = "senses improve",
+                      "observes_objects" = "observes objects and physical world",
+                      "experiments" = "actively experiments",
+                      "observes_people" = "observes people",
+                      "interacts_people" = "interacts with people",
+                      "people_teach" = "people explicitly teach")) %>%
+  remove_missing() %>% 
+  as.matrix() %>% 
+  t() %>%
+  dist(method = "euclidean") %>%
+  hclust(method = "ward") %>%
+  ggdendrogram(rotate = F) +
+  theme(axis.text.y = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        plot.margin = unit(c(5.5, 5.5, 5.5, 40), "points"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS07.pdf")) {
+  ggsave("../outputs/figS07.svg")
+  ggsave("../outputs/figS07.pdf")
+}
+```
+
+```{r figS07, fig.cap="Hierarchical cluster analysis of importance ratings of developmental mechanisms (Study 3).", include = T}
+knitr::include_graphics("../outputs/figS07.pdf")
+```
+
+#### Regression models
+
+To assess which developmental mechanisms were considered to be the most or least important in the development of each of the individual mental capacities included in this study (*bodily sensations*, *negative affect*, *social connection*, and *cognition and control*), we conducted a multilevel linear regression regressing responses to this question onto type of developmental mechanism (extrinsic vs. intrinsic), domain, and an interaction between them, including the maximal random effects structure that allowed the model to converge. Using the "lme4" package for R [@bates.etal2015], we specified this model as follows: _lmer(response ~ mechanism type * domain + (1 + mechanism type + domain | participant) + (1 | developmental mechanism) + (1 | capacity)_. We also conducted separate, analogous regression analyses for each domain separately. In these analyses, mechanism type and domain were effect-coded for comparisons to the grand mean collapsing across mechanism types and domains. (Note that these analyses omitted the mechanism "the child's brain changes [...]", because it was the only mechanism that was difficult to classify as either intrinsic or extrinsic via EFA and clustering analyses; see previous section.)
+
+The full results of these models are presented in Supplementary Tables \@ref(tab:tabs3lmerall) (all domains), \@ref(tab:tabs3lmerbod) (*bodily sensations*), \@ref(tab:tabs3lmerneg) (*negative affect*), \@ref(tab:tabs3lmersoc) (*social connection*), and \@ref(tab:tabs3lmercog) (*cognition and control*); see also Figure 3 (main text).
+
+```{r s3 mech ratings datasets b}
+d3_mech_ratings <- d3_dev_factor_rating %>%
+  mutate(factor = recode_factor(domain,
+                                "BOD" = "Bodily sensations",
+                                "NEG" = "Negative affect",
+                                "POS" = "Social connection",
+                                "COG" = "Cognition and control")) %>%
+  select(-domain) %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor %in% c("senses_improve", "body_grows", 
+                      "womb_experiences", "preprogrammed") ~ "intrinsic",
+    dev_factor %in% c("interacts_people", "observes_people", "observes_objects", 
+                      "people_teach", "experiments") ~ "extrinsic",
+    dev_factor == "brain_changes" ~ NA_character_,
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(dev_factor_cluster = factor(dev_factor_cluster,
+                                     levels = c("intrinsic", "extrinsic")))
+
+contrasts(d3_mech_ratings$factor) <- cbind(bod_gm = c(1, -1, 0, 0),
+                                           soc_gm = c(0, -1, 1, 0),
+                                           cog_gm = c(0, -1, 0, 1))
+
+# contrasts(d3_mech_ratings$factor) <- cbind(bod_gm = c(1, 0, -1, 0),
+#                                            neg_gm = c(0, 1, -1, 0),
+#                                            cog_gm = c(0, 0, -1, 1))
+
+contrasts(d3_mech_ratings$dev_factor_cluster) <- cbind(ext_gm = c(-1, 1))
+```
+
+```{r s3 mech ratings summary stats}
+# overall
+d3_mech_ratings_sum_a <- d3_mech_ratings %>%
+  filter(!is.na(dev_factor_cluster)) %>%
+  # participant-level mean of means for each cluster
+  group_by(ResponseId, dev_factor_cluster) %>%
+  summarise(score_a = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  # group-level mean of means for each cluster 
+  group_by(dev_factor_cluster) %>%
+  summarise(median = median(score_a, na.rm = T),
+            mean = mean(score_a, na.rm = T),
+            sd = sd(score_a, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(dev_factor_cluster)
+
+d3_mech_ratings_sum_a %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+
+# by domain
+d3_mech_ratings_sum_b <- d3_mech_ratings %>%
+  filter(!is.na(dev_factor_cluster)) %>%
+  # participant-level mean for each mechanism, for each domain
+  group_by(ResponseId, dev_factor_cluster, dev_factor, factor) %>%
+  summarise(score_a = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  # participant-level mean of means for each cluster, for each domain
+  group_by(ResponseId, dev_factor_cluster, factor) %>%
+  summarise(score_b = mean(score_a, na.rm = T)) %>%
+  ungroup() %>%
+  # group-level mean of means of means for each domain 
+  group_by(dev_factor_cluster, factor) %>%
+  summarise(median = median(score_b, na.rm = T),
+            mean = mean(score_b, na.rm = T),
+            sd = sd(score_b, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(factor, dev_factor_cluster)
+
+d3_mech_ratings_sum_b %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+
+# mean DIFFERENCES by domain
+d3_mech_ratings_sum_c <- d3_mech_ratings %>%
+  filter(!is.na(dev_factor_cluster)) %>%
+  # participant-level mean for each cluster, for each capacity
+  group_by(ResponseId, dev_factor_cluster, factor, capacity) %>%
+  summarise(score_a = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  # participant-level cluster differences for each capacity
+  spread(dev_factor_cluster, score_a) %>%
+  mutate(diff_a = extrinsic - intrinsic) %>%
+  select(-extrinsic, -intrinsic) %>%
+  # participant-level mean differences, for each domain
+  group_by(ResponseId, factor) %>%
+  summarise(diff_b = mean(diff_a, na.rm = T)) %>%
+  ungroup() %>%
+  # group-level mean of means of mean differences, for each domain 
+  group_by(factor) %>%
+  summarise(median = median(diff_b, na.rm = T),
+            mean = mean(diff_b, na.rm = T),
+            sd = sd(diff_b, na.rm = T)) %>%
+  ungroup() %>%
+  arrange(factor)
+
+d3_mech_ratings_sum_c %>%
+  mutate_if(is.numeric, funs(round_x(., 2)))
+```
+
+##### All domains
+
+In brief, this analysis suggested that, collapsing across domains, intrinsic and extrinsic mechanisms were rated as equally important, but that the difference between intrinsic and extrinsic mechanisms varied across domains (see interaction terms). 
+
+```{r s3 mech ratings lmer}
+s3_lmer <- lmer(response ~ dev_factor_cluster * factor + 
+                  (1 + dev_factor_cluster + factor | ResponseId) + 
+                  (1 | dev_factor) +
+                  (1 | capacity),
+                control = lmerControl(optimizer = "bobyqa"),
+                data = d3_mech_ratings)
+
+summary(s3_lmer)
+# model_parameters(s3_lmer)
+```
+
+```{r tabs3lmerall, include = T, message = F, warning = F}
+model_parameters(s3_lmer, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, t, df_error, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("dev_factor_clusterext_gm", "Mechanism type", Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(df = df_error) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel linear model results (all domains): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Bodily sensations
+
+For capacities in the domain of _bodily sensations_, this analysis suggested that participants rated intrinsic mechanisms as more important drivers of development than extrinsic mechanisms; see also Figure 3, panels A-B (main text).
+
+```{r s3 mech ratings lmer bod}
+s3_lmer_bod <- lmer(response ~ dev_factor_cluster + 
+                      (1 + dev_factor_cluster | ResponseId) + 
+                      (1 | dev_factor) + 
+                      (1 | capacity),
+                control = lmerControl(optimizer = "bobyqa"),
+                data = d3_mech_ratings %>% 
+                  filter(factor == "Bodily sensations"))
+
+summary(s3_lmer_bod)
+# model_parameters(s3_lmer)
+```
+
+```{r tabs3lmerbod, include = T, message = F, warning = F}
+model_parameters(s3_lmer_bod, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, t, df_error, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("dev_factor_clusterext_gm", "Mechanism type", Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(df = df_error) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel linear model results (bodily sensations): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Negative affect
+
+For capacities in the domain of _negative affect_, this analysis suggested that participants rated intrinsic and extrinsic mechanisms as equally important drivers of development; see also Figure 3, panels A-B (main text).
+
+```{r s3 mech ratings lmer neg}
+s3_lmer_neg <- lmer(response ~ dev_factor_cluster + 
+                      (1 + dev_factor_cluster | ResponseId) + 
+                      (1 | dev_factor) + 
+                      (1 | capacity),
+                control = lmerControl(optimizer = "bobyqa"),
+                data = d3_mech_ratings %>% 
+                  filter(factor == "Negative affect"))
+
+summary(s3_lmer_neg)
+# model_parameters(s3_lmer)
+```
+
+```{r tabs3lmerneg, include = T, message = F, warning = F}
+model_parameters(s3_lmer_neg, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, t, df_error, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("dev_factor_clusterext_gm", "Mechanism type", Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(df = df_error) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel linear model results (negative affect): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Social connection
+
+For capacities in the domain of _social connection_, this analysis suggested that participants rated extrinsic mechanisms as more important drivers of development than intrinsic mechanisms; see also Figure 3, panels A-B (main text).
+
+```{r s3 mech ratings lmer soc}
+s3_lmer_soc <- lmer(response ~ dev_factor_cluster + 
+                      (1 + dev_factor_cluster | ResponseId) + 
+                      (1 | dev_factor) + 
+                      (1 | capacity),
+                control = lmerControl(optimizer = "bobyqa"),
+                data = d3_mech_ratings %>% 
+                  filter(factor == "Social connection"))
+
+summary(s3_lmer_soc)
+# model_parameters(s3_lmer)
+```
+
+```{r tabs3lmersoc, include = T, message = F, warning = F}
+model_parameters(s3_lmer_soc, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, t, df_error, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("dev_factor_clusterext_gm", "Mechanism type", Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(df = df_error) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel linear model results (social connection): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Cognition and control
+
+For capacities in the domain of _cognition and control_, this analysis suggested that participants rated extrinsic mechanisms as much more important drivers of development than intrinsic mechanisms; see also Figure 3, panels A-B (main text).
+
+```{r s3 mech ratings lmer cog}
+s3_lmer_cog <- lmer(response ~ dev_factor_cluster + 
+                      (1 + dev_factor_cluster | ResponseId) + 
+                      (1 | dev_factor) + 
+                      (1 | capacity),
+                control = lmerControl(optimizer = "bobyqa"),
+                data = d3_mech_ratings %>% 
+                  filter(factor == "Cognition and control"))
+
+summary(s3_lmer_cog)
+# model_parameters(s3_lmer)
+```
+
+```{r tabs3lmercog, include = T, message = F, warning = F}
+model_parameters(s3_lmer_cog, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, t, df_error, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("dev_factor_clusterext_gm", "Mechanism type", Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(df = df_error) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel linear model results (cognition and control): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r fig03a, fig.width = 4.5, fig.asp = 1.5}
+fig03a <- d3_mech_ratings %>%
+  mutate(dev_factor_cluster = case_when(
+    is.na(dev_factor_cluster) ~ "Other",
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC mechanisms",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC mechanisms"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC mechanisms", 
+                                           "EXTRINSIC mechanisms",
+                                           "Other")),
+    dev_factor_text = recode_factor(
+      dev_factor,
+      "preprogrammed" = "biologically ‘preprogrammed'",
+      "womb_experiences" = "experiences in the womb",
+      "body_grows" = "body grows and matures",
+      "brain_changes" = "brain changes",
+      "senses_improve" = "senses improve",
+      "observes_objects" = "observes objects and physical world",
+      "experiments" = "actively experiments",
+      "observes_people" = "observes people",
+      "interacts_people" = "interacts with people",
+      "people_teach" = "people explicitly teach"),
+    capacity = str_wrap(gsub("_", " ", capacity), 14)) %>%
+  ggplot(aes(x = reorder(str_wrap(dev_factor_text, 20), 
+                         as.numeric(dev_factor)), 
+             y = response, color = factor)) +
+  facet_grid(rows = vars(reorder(capacity, as.numeric(factor))),
+             cols = vars(dev_factor_cluster),
+             scales = "free", space = "free") +
+  geom_hline(yintercept = 3, lty = 2, color = "darkred") +
+  geom_jitter(alpha = 0.6, size = 0.02) +
+  geom_pointrange(data = . %>%
+                    group_by(factor, capacity, 
+                             dev_factor_cluster, 
+                             dev_factor, dev_factor_text) %>%
+                    multi_boot_standard(col = "response") %>%
+                    ungroup(),
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black", fatten = 2) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 6, 3), minor_breaks = seq(0, 6, 1)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism",
+       y = "Response (0 = not at all important, 6 = extremely important)",
+       color = "Domain") +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)))
+```
+
+```{r fig03b, fig.width = 1.5, fig.asp = 6.75/1.5}
+fig03b <- d3_mech_ratings %>%
+  # filter(!is.na(dev_factor_cluster)) %>%
+  filter(!is.na(dev_factor)) %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor == "brain_changes" ~ "brain changes",
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC", 
+                                           "EXTRINSIC",
+                                           "brain changes"))) %>%  
+  # participant-level means for each cluster, by capacity
+  group_by(ResponseId, dev_factor_cluster, factor, capacity) %>%
+  summarise(score_a = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  # participant-level mean of means for each cluster, by domain
+  group_by(ResponseId, dev_factor_cluster, factor) %>%
+  summarise(score_b = mean(score_a, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(blank_var = "  ") %>%
+  ggplot(aes(x = reorder(str_pad(dev_factor_cluster, 
+                                 width = 28, side = "left"),
+                         as.numeric(dev_factor_cluster)), 
+             y = score_b, color = factor)) +
+  facet_grid(cols = vars(blank_var),
+             rows = vars(reorder(toupper(factor), as.numeric(factor))),
+             scales = "free", space = "free") +
+  geom_hline(yintercept = 3, lty = 2, color = "darkred") +
+  geom_path(data = . %>%
+              filter(dev_factor_cluster != "brain changes"),
+            aes(group = ResponseId), 
+            alpha = 0.1, size = 0.02,
+            position = position_jitter(width = 0.2, 
+                                       height = 0, 
+                                       seed = 94305)) +
+  geom_point(alpha = 0.6, size = 0.02,
+             position = position_jitter(width = 0.2, 
+                                        height = 0, 
+                                        seed = 94305)) +
+  # group-level mean of means of means for each cluster, by domain
+  geom_pointrange(data = . %>%
+                    group_by(factor, dev_factor_cluster) %>%
+                    multi_boot_standard(col = "score_b") %>%
+                    ungroup(),
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black", fatten = 2) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 6, 3), minor_breaks = seq(0, 6, 1)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism type",
+       y = "Mean response (0 = not at all important, 6 = extremely important)",
+       color = "Domain") +
+  guides(color = guide_none())
+  # guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)))
+# fig03b
+
+# jpg version (darker)
+fig03b_jpg <- d3_mech_ratings %>%
+  # filter(!is.na(dev_factor_cluster)) %>%
+  filter(!is.na(dev_factor)) %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor == "brain_changes" ~ "brain changes",
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC", 
+                                           "EXTRINSIC",
+                                           "brain changes"))) %>%  
+  # participant-level means for each cluster, by capacity
+  group_by(ResponseId, dev_factor_cluster, factor, capacity) %>%
+  summarise(score_a = mean(response, na.rm = T)) %>%
+  ungroup() %>%
+  # participant-level mean of means for each cluster, by domain
+  group_by(ResponseId, dev_factor_cluster, factor) %>%
+  summarise(score_b = mean(score_a, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(blank_var = "  ") %>%
+  ggplot(aes(x = reorder(str_pad(dev_factor_cluster, 
+                                 width = 28, side = "left"),
+                         as.numeric(dev_factor_cluster)), 
+             y = score_b, color = factor)) +
+  facet_grid(cols = vars(blank_var),
+             rows = vars(reorder(toupper(factor), as.numeric(factor))),
+             scales = "free", space = "free") +
+  geom_hline(yintercept = 3, lty = 2, color = "darkred") +
+  geom_path(data = . %>%
+              filter(dev_factor_cluster != "brain changes"),
+            aes(group = ResponseId), 
+            alpha = 1, size = 0.02,
+            position = position_jitter(width = 0.2, 
+                                       height = 0, 
+                                       seed = 94305)) +
+  geom_point(alpha = 0.6, size = 0.02,
+             position = position_jitter(width = 0.2, 
+                                        height = 0, 
+                                        seed = 94305)) +
+  # group-level mean of means of means for each cluster, by domain
+  geom_pointrange(data = . %>%
+                    group_by(factor, dev_factor_cluster) %>%
+                    multi_boot_standard(col = "score_b") %>%
+                    ungroup(),
+                  aes(y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black", fatten = 2) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_y_continuous(breaks = seq(0, 6, 3), minor_breaks = seq(0, 6, 1)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism type",
+       y = "Mean response (0 = not at all important, 6 = extremely important)",
+       color = "Domain") +
+  guides(color = guide_none())
+  # guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)))
+# fig03b_jpg
+```
+
+### Developmental mechanisms: Selection of "most important"
+
+As described in the main text, we also assessed participants' responses to forced-choice questions about the "most important" factor driving the development of each of these capacities. In the main text, we presented a visualization of these choices (Figure 3, Panel C). Here, we present multilevel generalized linear model (logistic regressions) to predict the likelihood of selecting extrinsic vs. intrinsic mechanisms by domain. Using the "lme4" package for R [@bates.etal2015], we specified this model as follows: _glmer(choice of extrinsic mechanism ~ domain + (1 | participant) + (1 | capacity)_. We also conducted separate, analogous regression analyses for each domain separately. In these analyses, domain was effect-coded for comparisons to the grand mean collapsing across domains. (As in the previous section, these analyses omitted the mechanism "the child's brain changes [...]", because it was the only mechanism that was difficult to classify as either intrinsic or extrinsic via EFA and clustering analyses.)
+
+The full results of these models are presented in Supplementary Tables \@ref(tab:tabs3glmerall) (all domains), \@ref(tab:tabs3glmerbod) (*bodily sensations*), \@ref(tab:tabs3glmerneg) (*negative affect*), \@ref(tab:tabs3glmersoc) (*social connection*), and \@ref(tab:tabs3glmercog) (*cognition and control*); see also Figure 3 (main text).
+
+```{r s3 mech choice datasets}
+d3_mech_choice <- d3_dev_factor_most_important_choice %>%
+  mutate(factor = recode_factor(domain,
+                                "BOD" = "Bodily sensations",
+                                "NEG" = "Negative affect",
+                                "POS" = "Social connection",
+                                "COG" = "Cognition and control"),
+         dev_factor = recode_factor(
+           response,
+           "The child is biologically \"preprogrammed\" to have this ability" = "preprogrammed",
+           "The child has experiences in the womb that give them this ability" = "womb_experiences",
+           "The child's body grows and matures (for example, muscles get stronger, child gets taller)" = "body_grows",
+           "The child's brain changes (for example, brain grows bigger, more or fewer connections between neurons)" = "brain_changes",
+           "The child's senses improve (for example, vision gets sharper, hearing improves)" = "senses_improve",
+           "The child observes the objects and the physical world around him or her" = "observes_objects",
+           "The child actively experiments with how to do this" = "experiments",
+           "The child observes the people around him or her" = "observes_people",
+           "The child interacts with the people around him or her" = "interacts_people",
+           "People explicitly teach the child how to do this" = "people_teach",
+           .default = "other")) %>%
+  select(-domain, -response) %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor %in% c("senses_improve", "body_grows", 
+                      "womb_experiences", "preprogrammed") ~ "intrinsic",
+    dev_factor %in% c("interacts_people", "observes_people", "observes_objects", 
+                      "people_teach", "experiments") ~ "extrinsic",
+    dev_factor == "brain_changes" ~ NA_character_,
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(dev_factor_cluster = factor(dev_factor_cluster,
+                                     levels = c("intrinsic", "extrinsic")))
+
+contrasts(d3_mech_choice$factor) <- cbind(bod_gm = c(1, -1, 0, 0),
+                                           soc_gm = c(0, -1, 1, 0),
+                                           cog_gm = c(0, -1, 0, 1))
+
+# contrasts(d3_mech_choice$factor) <- cbind(bod_gm = c(1, 0, -1, 0),
+#                                            neg_gm = c(0, 1, -1, 0),
+#                                            cog_gm = c(0, 0, -1, 1))
+
+contrasts(d3_mech_choice$dev_factor_cluster) <- cbind(ext_gm = c(-1, 1))
+```
+
+```{r s3 mech choice summary stats}
+# overall
+d3_mech_choice_sum_a <- d3_mech_choice %>%
+  count(dev_factor_cluster) %>%
+  mutate(prop = n/sum(n))
+
+d3_mech_choice_sum_a %>%
+  mutate_at(vars(prop), funs(round_x(., 2)))
+
+# by domain
+d3_mech_choice_sum_b <- d3_mech_choice %>%
+  count(factor, dev_factor_cluster) %>%
+  group_by(factor) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup()
+
+d3_mech_choice_sum_b %>%
+  mutate_at(vars(prop), funs(round_x(., 2)))
+```
+
+##### All domains
+
+This analysis suggested that participants' choice of extrinsic vs. intrinsic mechanisms as the "most important" driver of development varied by domain (see interaction terms).
+
+```{r s3 mech choice glmer}
+s3_glmer <- glmer(extrinsic ~ factor + 
+                    (1 | ResponseId) + 
+                    (1 | capacity),
+                  control = glmerControl(optimizer = "bobyqa"),
+                  data = d3_mech_choice %>%
+                    mutate(extrinsic = case_when(dev_factor_cluster == "extrinsic" ~ 1,
+                                                 dev_factor_cluster == "intrinsic" ~ 0,
+                                                 is.na(dev_factor_cluster) ~ NA_real_,
+                                                 TRUE ~ NA_real_)),
+                  family = "binomial")
+
+summary(s3_glmer)
+# model_parameters(s3_glmer)
+```
+
+```{r tabs3glmerall, include = T, message = F, warning = F}
+model_parameters(s3_glmer, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, z, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel generalized linear model results (all domains): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Bodily sensastions
+
+For capacities in the domain of _bodily sensations_, this analysis suggested that participants were much more likely to select intrinsic mechanisms than extrinsic mechanisms as the most important drivers of development; see also Figure 3, panel C (main text).
+
+```{r s3 mech choice glmer bodily sensations}
+s3_glmer_bod <- glmer(extrinsic ~ 1 + 
+                        (1 | ResponseId) + 
+                        (1 | capacity),
+                      control = glmerControl(optimizer = "bobyqa"),
+                      data = d3_mech_choice %>%
+                        filter(factor == "Bodily sensations") %>%
+                        mutate(extrinsic = case_when(dev_factor_cluster == "extrinsic" ~ 1,
+                                                     dev_factor_cluster == "intrinsic" ~ 0,
+                                                     is.na(dev_factor_cluster) ~ NA_real_,
+                                                     TRUE ~ NA_real_)),
+                      family = "binomial")
+
+summary(s3_glmer_bod)
+# model_parameters(s3_glmer)
+```
+
+```{r tabs3glmerbod, include = T, message = F, warning = F}
+model_parameters(s3_glmer_bod, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, z, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel generalized linear model results (bodily sensations): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Negative affect
+
+For capacities in the domain of _negative affect_, this analysis suggested that participants were equally likely to select intrinsic and extrinsic mechanisms as the most important drivers of development; see also Figure 3, panel C (main text).
+
+```{r s3 mech choice glmer negative affect}
+s3_glmer_neg <- glmer(extrinsic ~ 1 + 
+                        (1 | ResponseId) + 
+                        (1 | capacity),
+                      control = glmerControl(optimizer = "bobyqa"),
+                      data = d3_mech_choice %>%
+                        filter(factor == "Negative affect") %>%
+                        mutate(extrinsic = case_when(dev_factor_cluster == "extrinsic" ~ 1,
+                                                     dev_factor_cluster == "intrinsic" ~ 0,
+                                                     is.na(dev_factor_cluster) ~ NA_real_,
+                                                     TRUE ~ NA_real_)),
+                      family = "binomial")
+
+summary(s3_glmer_neg)
+# model_parameters(s3_glmer)
+```
+
+```{r tabs3glmerneg, include = T, message = F, warning = F}
+model_parameters(s3_glmer_neg, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, z, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel generalized linear model results (negative affect): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Social connection 
+
+For capacities in the domain of _social connection_, this analysis suggested that participants were equally likely to select intrinsic and extrinsic mechanisms as the most important drivers of development; see also Figure 3, panel C (main text).
+
+```{r s3 mech choice glmer social connection}
+s3_glmer_soc <- glmer(extrinsic ~ 1 + 
+                        (1 | ResponseId) + 
+                        (1 | capacity),
+                      control = glmerControl(optimizer = "bobyqa"),
+                      data = d3_mech_choice %>%
+                        filter(factor == "Social connection") %>%
+                        mutate(extrinsic = case_when(dev_factor_cluster == "extrinsic" ~ 1,
+                                                     dev_factor_cluster == "intrinsic" ~ 0,
+                                                     is.na(dev_factor_cluster) ~ NA_real_,
+                                                     TRUE ~ NA_real_)),
+                      family = "binomial")
+
+summary(s3_glmer_soc)
+# model_parameters(s3_glmer)
+```
+
+```{r tabs3glmersoc, include = T, message = F, warning = F}
+model_parameters(s3_glmer_soc, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, z, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel generalized linear model results (social connection): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+##### Cognition and control
+
+For capacities in the domain of _cognition and control_, this analysis suggested that participants were much more likely to select extrinsic mechanisms than intrinsic mechanisms as the most important drivers of development; see also Figure 3, panel C (main text).
+
+```{r s3 mech choice glmer cognition and control}
+s3_glmer_cog <- glmer(extrinsic ~ 1 + 
+                        (1 | ResponseId) + 
+                        (1 | capacity),
+                      control = glmerControl(optimizer = "bobyqa"),
+                      data = d3_mech_choice %>%
+                        filter(factor == "Cognition and control") %>%
+                        mutate(extrinsic = case_when(dev_factor_cluster == "extrinsic" ~ 1,
+                                                     dev_factor_cluster == "intrinsic" ~ 0,
+                                                     is.na(dev_factor_cluster) ~ NA_real_,
+                                                     TRUE ~ NA_real_)),
+                      family = "binomial")
+
+summary(s3_glmer_cog)
+# model_parameters(s3_glmer)
+```
+
+```{r tabs3glmercog, include = T, message = F, warning = F}
+model_parameters(s3_glmer_cog, standardize = "refit") %>%
+  filter(Effects == "fixed") %>%
+  select(Parameter, Coefficient, SE, CI_low, CI_high, z, p) %>%
+  mutate(Parameter = case_when(
+    Parameter == "(Intercept)" ~ "Grand mean (GM) (intercept)",
+    TRUE ~ Parameter)) %>%
+  mutate(Parameter = gsub("factorbod_gm", "Bodily sensations (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorsoc_gm", "Social connection (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("factorcog_gm", "Cognition and control (vs. GM)", Parameter)) %>%
+  mutate(Parameter = gsub("\\:", " x ", Parameter)) %>%
+  mutate(p = ifelse(p < 0.001, "<0.001", round_x(p, 3))) %>%
+  mutate(`95% CI` = paste0("[", round_x(CI_low), ", ", round_x(CI_high), "]")) %>%
+  select(-starts_with("CI")) %>%
+  select(Parameter, Coefficient, `95% CI`, everything()) %>%
+  rename(`Coefficient (log-odds)` = Coefficient) %>%
+  kable("latex", booktabs = T, longtable = T,
+        caption = "Study 3, multilevel generalized linear model results (cognition and control): Fixed effects.",
+        digits = 2, align = c("lrrrrrr")) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8)
+```
+
+```{r figS08a, fig.width = 4.5, fig.asp = 1.5}
+figS08a <- d3_mech_choice %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC mechanisms",
+    is.na(dev_factor_cluster) ~ "Other",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC mechanisms"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC mechanisms", 
+                                           # "Other",
+                                           "EXTRINSIC mechanisms")),
+    dev_factor_text = recode_factor(
+      dev_factor,
+      "preprogrammed" = "biologically ‘preprogrammed'",
+      "womb_experiences" = "experiences in the womb",
+      "body_grows" = "body grows and matures",
+      "brain_changes" = "brain changes",
+      "senses_improve" = "senses improve",
+      "observes_objects" = "observes objects and physical world",
+      "experiments" = "actively experiments",
+      "observes_people" = "observes people",
+      "interacts_people" = "interacts with people",
+      "people_teach" = "people explicitly teach"),
+    capacity = str_wrap(gsub("_", " ", capacity), 14)) %>%
+  ggplot(aes(x = reorder(str_wrap(dev_factor_text, 20), 
+                         as.numeric(dev_factor)), 
+             fill = factor, color = factor)) +
+  facet_grid(rows = vars(reorder(capacity, as.numeric(factor))),
+             cols = vars(dev_factor_cluster),
+             scales = "free_x", space = "free_x") +
+  geom_bar(stat = "count", alpha = 0.6) +
+  scale_fill_viridis_d(end = 0.9, option = "viridis", 
+                       aesthetics = c("color", "fill")) +
+  scale_y_continuous(breaks = seq(0, 
+                                  d3_mech_choice %>% 
+                                    distinct(ResponseId) %>% 
+                                    count() %>% 
+                                    pull(n), 
+                                  100),
+                     limits = c(0, 
+                                d3_mech_choice %>% 
+                                  distinct(ResponseId) %>% 
+                                  count() %>% 
+                                  pull(n))) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism",
+       y = "Count of responses",
+       color = "Domain", fill = "Domain") +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)),
+         fill = guide_legend(override.aes = list(alpha = 1, size = 2)))
+```
+
+```{r figS08b, fig.width = 1.5, fig.asp = 6.75/1.5}
+figS08b <- d3_mech_choice %>%
+  filter(!is.na(dev_factor_cluster)) %>%
+  count(dev_factor_cluster, factor) %>%
+  mutate(dev_factor_cluster = case_when(
+    # is.na(dev_factor_cluster) ~ "Other",
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC", 
+                                           "EXTRINSIC")),
+                                           # "Other")),
+    blank_var = "  ") %>%
+  ggplot(aes(x = reorder(str_pad(dev_factor_cluster, 
+                                 width = 28, side = "left"),
+                         as.numeric(dev_factor_cluster)),
+             y = n,
+             fill = factor, color = factor)) +
+  facet_grid(cols = vars(blank_var),
+             rows = vars(reorder(toupper(factor), as.numeric(factor))),
+             scales = "free_x", space = "free_x") +
+  geom_bar(stat = "identity", alpha = 0.6) +
+  scale_fill_viridis_d(end = 0.9, option = "viridis", aesthetics = c("color", "fill")) +
+  scale_y_continuous(breaks = seq(0, 
+                                  2 * d3_mech_choice %>% 
+                                    distinct(ResponseId) %>% 
+                                    count() %>% 
+                                    pull(n), 
+                                  2 * 100),
+                     limits = c(0, 
+                                2 * d3_mech_choice %>% 
+                                  distinct(ResponseId) %>% 
+                                  count() %>% 
+                                  pull(n))) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism type",
+       y = "Count of responses",
+       color = "Domain", fill = "Domain") +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)),
+         fill = guide_legend(override.aes = list(alpha = 1, size = 2)))
+# figS08b
+```
+
+```{r figS08, fig.cap="Selection of the various mechanisms as the 'most important' driver of development of four domains of mental life (Study 3); see main text for the full text of each mechanism. Panel A shows selections for each developmental mechanism and both of the capacities within each domain; Panel B shows selections for extrinsic vs. intrinsic mechanisms for each domain of capacities (identical to Figure 3, Panel C, main text). Lighter points and lines represent individual participants' responses, black points correspond to mean scores across the sample, and error bars are bootstrapped 95% confidence intervals. The dotted red line at the midpoint of the response scale in Panels A and B is intended to aid visual comparison across domains.", fig.width = 4.5, fig.asp = 6.75/6}
+plot_grid(figS08a + guides(fill = guide_none(), color = guide_none()),
+          figS08b + guides(fill = guide_none(), color = guide_none()) + labs(y = NULL), 
+          nrow = 1, rel_widths = c(4.5, 1.5), labels = "AUTO")
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS08.pdf")) {
+  ggsave("../outputs/figS08.svg")
+  ggsave("../outputs/figS08.pdf")
+}
+```
+
+```{r fig03c, fig.width = 1.5, fig.asp = 6.75/1.5}
+fig03c <- d3_mech_choice %>%
+  # filter(!is.na(dev_factor_cluster)) %>%
+  filter(dev_factor != "other") %>%
+  mutate(dev_factor_cluster = case_when(
+    dev_factor == "brain_changes" ~ "brain changes",
+    dev_factor_cluster == "intrinsic" ~ "INTRINSIC",
+    dev_factor_cluster == "extrinsic" ~ "EXTRINSIC"),
+    dev_factor_cluster = factor(dev_factor_cluster,
+                                levels = c("INTRINSIC", 
+                                           "EXTRINSIC",
+                                           "brain changes"))) %>%
+  count(dev_factor_cluster, factor) %>%
+  mutate(blank_var = "  ") %>%
+  ggplot(aes(x = reorder(str_pad(dev_factor_cluster, 
+                                 width = 28, side = "left"),
+                         as.numeric(dev_factor_cluster)),
+             y = n,
+             fill = factor, color = factor)) +
+  facet_grid(cols = vars(blank_var),
+             rows = vars(reorder(toupper(factor), as.numeric(factor))),
+             scales = "free_x", space = "free_x") +
+  geom_bar(stat = "identity", alpha = 0.6) +
+  scale_fill_viridis_d(end = 0.9, option = "viridis", aesthetics = c("color", "fill")) +
+  scale_y_continuous(breaks = seq(0, 
+                                  2 * d3_mech_choice %>% 
+                                    distinct(ResponseId) %>% 
+                                    count() %>% 
+                                    pull(n), 
+                                  2 * 100),
+                     limits = c(0, 
+                                2 * d3_mech_choice %>% 
+                                  distinct(ResponseId) %>% 
+                                  count() %>% 
+                                  pull(n))) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA), 
+        strip.text = element_text(vjust = 0),
+        legend.position = "top",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+        # plot.margin = unit(c(0.5, 0.5, 0.5, 1.1), "cm")) +
+  labs(x = "Developmental mechanism type",
+       y = "Count of responses",
+       color = "Domain", fill = "Domain") +
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)),
+         fill = guide_legend(override.aes = list(alpha = 1, size = 2)))
+# fig03c
+```
+
+```{r fig03, fig.cap="Perceived importance of various mechanisms in the development of four domains of mental life (Study 3); see main text for the full text of each mechanism. Panel A shows ratings for each developmental mechanism and both of the capacities within each domain; Panel B shows mean ratings for extrinsic vs. intrinsic mechanisms for each domain of capacities; and Panel C shows the percentage of trials on which participants selected extrinsic vs. intrinsic mechanisms as the 'most important' driver of development. Lighter points and lines represent individual participants' responses, black points correspond to mean scores across the sample, and error bars are bootstrapped 95% confidence intervals. The dotted red line at the midpoint of the response scale in Panels A and B is intended to aid visual comparison across domains.", fig.width = 5, fig.asp = 6.75/(4.5 + 1.5 + 1.5)}
+plot_grid(fig03a + guides(color = guide_none()),
+          NULL, # to adjust spacing between panels
+          fig03b, # + labs(x = " "),
+          NULL,
+          fig03c + 
+            labs(x = " ",
+                 y = "Selection of 'most important' mechanism") +
+            scale_y_continuous(limits = c(0, 2*nrow(d3_demo)),
+                               breaks = c(0, nrow(d3_demo), 2*nrow(d3_demo)),
+                               labels = c("0%", "50%", "100%")) +
+            guides(fill = guide_none(),
+                   color = guide_none()), 
+          nrow = 1, rel_widths = c(4.5, 0.1, 1.5, 0.1, 1.5), 
+          labels = c("A", "", "B", "", "C"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/fig03.pdf")) {
+  ggsave("../outputs/fig03.svg")
+  ggsave("../outputs/fig03.pdf")
+}
+```
+
+```{r fig03_jpg, fig.cap="Perceived importance of various mechanisms in the development of four domains of mental life (Study 3); see main text for the full text of each mechanism. Panel A shows ratings for each developmental mechanism and both of the capacities within each domain; Panel B shows mean ratings for extrinsic vs. intrinsic mechanisms for each domain of capacities; and Panel C shows the percentage of trials on which participants selected extrinsic vs. intrinsic mechanisms as the 'most important' driver of development. Lighter points and lines represent individual participants' responses, black points correspond to mean scores across the sample, and error bars are bootstrapped 95% confidence intervals. The dotted red line at the midpoint of the response scale in Panels A and B is intended to aid visual comparison across domains.", fig.width = 5, fig.asp = 6.75/(4.5 + 1.5 + 1.5)}
+plot_grid(fig03a + guides(color = guide_none()),
+          NULL, # to adjust spacing between panels
+          fig03b_jpg, # + labs(x = " "),
+          NULL,
+          fig03c + 
+            labs(x = " ",
+                 y = "Selection of 'most important' mechanism") +
+            scale_y_continuous(limits = c(0, 2*nrow(d3_demo)),
+                               breaks = c(0, nrow(d3_demo), 2*nrow(d3_demo)),
+                               labels = c("0%", "50%", "100%")) +
+            guides(fill = guide_none(),
+                   color = guide_none()), 
+          nrow = 1, rel_widths = c(4.5, 0.1, 1.5, 0.1, 1.5), 
+          labels = c("A", "", "B", "", "C"))
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/fig03.jpg")) {
+  ggsave("../outputs/fig03.jpg")
+}
+```
+
+```{r s3 export results}
+# save numerical results
+s3_results <- list(demo = d3_demo,
+                   cap_rat_ss = d3_cap_ratings_sum,
+                   mech_rat_ss_a = d3_mech_ratings_sum_a,
+                   mech_rat_ss_b = d3_mech_ratings_sum_b,
+                   mech_rat_ss_c = d3_mech_ratings_sum_c,
+                   gam = s3_gam, 
+                   lmer = s3_lmer, 
+                   lmer_bod = s3_lmer_bod,
+                   lmer_neg = s3_lmer_neg,
+                   lmer_soc = s3_lmer_soc,
+                   lmer_cog = s3_lmer_cog,
+                   mech_choice_ss_a = d3_mech_choice_sum_a,
+                   mech_choice_ss_b = d3_mech_choice_sum_b,
+                   glmer = s3_glmer, 
+                   glmer_bod = s3_glmer_bod,
+                   glmer_neg = s3_glmer_neg,
+                   glmer_soc = s3_glmer_soc,
+                   glmer_cog = s3_glmer_cog)
+
+saveRDS(s3_results, "../outputs/s3_results.rds")
+```
+
+
+
+```{r}
+# ADDITIONAL EXPLORATORY ANALYSES  NOT DESCRIBED IN SUPPLEMENT
+```
+
+```{r figS09a, fig.width = 4.5, fig.asp = 0.4}
+figS09a <- d2_gam %>% 
+  group_by(factor, capacity, target_year) %>%
+  summarise(var = var(response, na.rm = T)) %>%
+  ungroup() %>%
+  ggplot(aes(x = target_year, y = var, color = factor)) +
+  facet_grid(cols = vars(factor)) +
+  geom_path(aes(group = capacity), 
+            alpha = 0.1, size = 0.5,
+            position = position_jitter(width = 0.2, 
+                                       height = 0, 
+                                       seed = 94305)) +
+  geom_point(alpha = 1, size = 0.5,
+             position = position_jitter(width = 0.2, 
+                                        height = 0, 
+                                        seed = 94305)) +
+  geom_text(data = . %>% 
+              filter(target_year == 5) %>%
+              group_by(factor) %>%
+              filter(var == max(var) | var == min(var)) %>%
+              ungroup(),
+            aes(x = 5.2, label = str_wrap(gsub("_", " ", capacity), 18)),
+            color = "black", hjust = 0, size = 2) +
+  geom_pointrange(data = . %>%
+                    group_by(factor) %>%
+                    multi_boot_standard(col = "var") %>%
+                    ungroup(),
+                  aes(x = 2.5, y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black", shape = 15, size = 0.5) +
+  geom_pointrange(data = . %>%
+                    filter(target_year == 0) %>%
+                    group_by(factor) %>%
+                    multi_boot_standard(col = "var") %>%
+                    ungroup(),
+                  aes(x = -0.5, y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "#f94802", shape = 15, size = 0.3) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_x_continuous(limits = c(NA, 9), breaks = seq(0, 5, 1)) +
+  scale_y_continuous(limits = c(0, 0.16)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Variance") +
+  guides(color = guide_none())
+```
+
+```{r figS09b, fig.width = 4.5, fig.asp = 0.4}
+figS09b <- d3_gam %>% 
+  group_by(factor, capacity, target_year) %>%
+  summarise(var = var(response, na.rm = T)) %>%
+  ungroup() %>%
+  ggplot(aes(x = target_year, y = var, color = factor)) +
+  facet_grid(cols = vars(factor)) +
+  geom_path(aes(group = capacity), 
+            alpha = 0.1, size = 0.5,
+            position = position_jitter(width = 0.2, 
+                                       height = 0, 
+                                       seed = 94305)) +
+  geom_point(alpha = 1, size = 0.5,
+             position = position_jitter(width = 0.2, 
+                                        height = 0, 
+                                        seed = 94305)) +
+  geom_text(data = . %>% filter(target_year == 5),
+            aes(x = 5.2, label = str_wrap(gsub("_", " ", capacity), 18)),
+            color = "black", hjust = 0, size = 2) +
+  geom_pointrange(data = . %>%
+                    group_by(factor) %>%
+                    multi_boot_standard(col = "var") %>%
+                    ungroup(),
+                  aes(x = 2.5, y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "black", shape = 15, size = 0.5) +
+  geom_pointrange(data = . %>%
+                    filter(target_year == 0) %>%
+                    group_by(factor) %>%
+                    multi_boot_standard(col = "var") %>%
+                    ungroup(),
+                  aes(x = -0.5, y = mean, ymin = ci_lower, ymax = ci_upper),
+                  color = "#f94802", shape = 15, size = 0.3) +
+  scale_color_viridis_d(end = 0.9, option = "viridis") +
+  scale_x_continuous(limits = c(NA, 9), breaks = seq(0, 5, 1)) + 
+  scale_y_continuous(limits = c(0, 0.16)) +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = NA)) +
+  labs(x = "Target age (years)",
+       y = "Variance") +
+  guides(color = guide_none())
+```
+
+```{r figS09 code, fig.width = 4, fig.asp = 1.2}
+plot_grid(figS09a, figS09b,
+          ncol = 1, labels = "AUTO")
+
+# save plot
+if (resave_plots == T | !file.exists("../outputs/figS09.pdf")) {
+  ggsave("../outputs/figS09.svg")
+  ggsave("../outputs/figS09.pdf")
+}
+```
+
+```{r figS09, fig.cap="Variance of capacity attributions in four domains of mental life (Studies 2-3). Lighter dots and lines represent variance across participnts for a particular capacity at a particular target age, red points correpond to mean variance across capacities at birth, black points correspond to mean variance across capacities and across all target ages, and error bars are bootstrapped 95% confidence intervals. In Study 2 (Panel A), participants assessed 5 capacities within each domain, and assessed all capacities for a given target age before moving on to the next target age. In Study 3 (Panel B), participants assessed 2 capacities within each domain, and assessed a single capacity for all target ages before moving on to the next capacity."}
+knitr::include_graphics("../outputs/figS09.pdf")
+```
+
+
+# Selection of capacities: Comparison to previous studies
+
+Supplementary Table \@ref(tab:tabs1efaparload) provides an item-by-item comparison of the capacities included in this study to capacities included in previous studies of mind perception [@gray.etal2007; @weisman.etal2017a; @weisman.etal2017b; @malle2019].
+
+```{r capacities comparison df}
+d_cap_comp <- read_csv("../data/capacities_comparison.csv") %>%
+  mutate_if(is.character, funs(tolower(.))) %>%
+  mutate_if(is.character, funs(gsub("recognizing others.", "recognizing others'", .))) %>%
+  mutate_if(is.character, funs(gsub("self.control", "self-control", .))) %>%
+  left_join(d1_scales %>%
+              mutate(capacity = gsub("_", " ", capacity),
+                     capacity = gsub("recognizing others ", "recognizing others' ", capacity),
+                     capacity = gsub("self.control", "self-control", capacity)) %>%
+              rename(`Study 1` = capacity)) %>%
+  rename(`Weisman et al. (2017, PNAS)` = `Weisman et al. (2017a)`,
+         `Weisman et al. (2017, Proc. CogSci)` = `Weisman et al. (2017b)`) %>%
+  mutate_at(vars(`Weisman et al. (2017, PNAS)`, `Weisman et al. (2017, Proc. CogSci)`, 
+                 `Gray et al. (2007)`, `Malle (2019, Study 1)`, `Malle (2019, Study 2)`),
+            funs(case_when(is.na(`Study 1`) & grepl("similar to", .) ~ NA_character_, TRUE ~ .))) %>%
+  arrange(order, `Weisman et al. (2017, PNAS)`, `Weisman et al. (2017, Proc. CogSci)`, 
+          `Gray et al. (2007)`, `Malle (2019, Study 1)`, `Malle (2019, Study 2)`) %>%
+  filter(!(is.na(`Study 1`) & 
+             is.na(`Weisman et al. (2017, PNAS)`) &
+             is.na(`Weisman et al. (2017, Proc. CogSci)`) &
+             is.na(`Gray et al. (2007)`) &
+             is.na(`Malle (2019, Study 1)`) & 
+             is.na(`Malle (2019, Study 2)`))) %>%
+  mutate_if(is.character, funs(replace_na(., "-"))) %>%
+  mutate(factor = case_when(is.na(factor) ~ "Not included", TRUE ~ as.character(factor)),
+         factor = factor(factor, 
+                         levels = c("Bodily sensations", "Negative affect",
+                                    "Social connection", "Cognition and control", 
+                                    "Not included"))) %>%
+  select(factor, everything(), -loading, -order) %>%
+  rename(Domain = factor) %>%
+  ungroup()
+```
+
+```{r tabcapcomp, include = T, warning = F, message = F}
+d_cap_comp %>%
+  select(-Domain) %>%
+  mutate_all(~gsub("similar to .", "similar to \\`", .)) %>% 
+  mutate(`Study 1` = case_when(`Study 2` != "-" ~ paste0(`Study 1`, 
+                                                         footnote_marker_symbol(1)),
+                               TRUE ~ `Study 1`)) %>%
+  mutate(`Study 1` = case_when(`Study 3` != "-" ~ paste0(`Study 1`, 
+                                                         footnote_marker_symbol(2)),
+                               TRUE ~ `Study 1`)) %>%
+  select(-`Study 2`, -`Study 3`) %>%
+  mutate_at(vars(`Gray et al. (2007)`),
+            funs(gsub("\\..*", "", .))) %>%
+  kable("latex", booktabs = T, escape = F, longtable = T) %>%
+  kable_styling(latex_options = c("repeat_header"), font_size = 8) %>%
+  add_header_above(c("Current studies" = 1,
+                     "Previous studies" = 5)) %>%
+  column_spec(1, width = "4cm") %>%
+  column_spec(2:6, width = "2cm") %>%
+  pack_rows(group_label = "Bodily sensations", start_row = 1, end_row = 11) %>%
+  pack_rows("Negative affect", 12, 16) %>%
+  pack_rows("Social connection", 17, 38) %>%
+  pack_rows("Cognition and control", 39, 60) %>%
+  pack_rows("Not included", 61, nrow(d_cap_comp)) %>%
+  footnote(symbol = c("Also used in Study 2; ", "Also used in Study 3"),
+           symbol_title = "Notes: ",
+           footnote_as_chunk = T)
+```
+
+\newpage
+# References
+             
